@@ -1,0 +1,18 @@
+{% extends 'planner/base.html' %}
+
+{% block title %}
+    Choose a Date
+{% endblock %}
+
+{% block body %}
+    <main class="container">
+        <h1>{{ course.name }}</h1>
+{#        <div class="btn-group-vertical" role="group">#}
+            {% for ts in tss %}
+                {% url 'choose_time' course_name=course.short_name date=ts.date|slugify as date_url %}
+                <a class="btn btn-outline-primary" href="{{ date_url }}">{{ ts.date }} tussen {{ ts.start_time }}
+                    en {{ ts.end_time }}</a>
+            {% endfor %}
+{#        </div>#}
+    </main>
+{% endblock %}

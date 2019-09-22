@@ -1,0 +1,40 @@
+{% extends 'planner/base.html' %}
+
+{% block title %}
+    Choose a Date
+{% endblock %}
+
+{% block body %}
+    <main class="container">
+        <h1>{{ course.name }}</h1>
+        <h2>{{ ts.date }} tussen {{ ts.start_time }} en {{ ts.end_time }}</h2>
+        <h3>Toetsje van {{ ts.slot_length }} minuten</h3>
+
+        <form>
+            <div class="row">
+                <div class="col-lg-6">
+                    <h2>Choose a time</h2>
+                    <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                        {% for time in ts.student_slots %}
+                            <label class="btn btn-outline-primary btn-block">
+                                <input type="radio" name="time" value="{{ time|slugify|slice:4 }}"
+                                       autocomplete="off"> {{ time }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    {% csrf_token %}
+                    {{ form  }}
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
+        {#        {% include 'planner/plan_modal.html' %}#}
+    </main>
+{% endblock %}
+
+{% block script %}
+{% endblock %}
