@@ -10,14 +10,15 @@
         <h2>{{ ts.date }} tussen {{ ts.start_time }} en {{ ts.end_time }}</h2>
         <h3>Toetsje van {{ ts.slot_length }} minuten</h3>
 
-        <form>
+        <form method="post">
             <div class="row">
                 <div class="col-lg-6">
-                    <h2>Choose a time</h2>
+                    <h2>Kies een tijd</h2>
+                    {{ form.star_time.errors }}
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                         {% for time in ts.student_slots %}
                             <label class="btn btn-outline-primary btn-block">
-                                <input type="radio" name="time" value="{{ time|slugify|slice:4 }}"
+                                <input type="radio" name="start_time" value="{{ time }}"
                                        autocomplete="off"> {{ time }}
                             </label>
                         {% endfor %}
@@ -26,13 +27,12 @@
 
                 <div class="col-lg-6">
                     {% csrf_token %}
-                    {{ form  }}
-
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    {{ form }}
+                    <br>
+                    <button type="submit" class="btn btn-primary">Verstuur</button>
                 </div>
             </div>
         </form>
-        {#        {% include 'planner/plan_modal.html' %}#}
     </main>
 {% endblock %}
 

@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime, date, time
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -25,6 +25,9 @@ class TimeSlot(models.Model):
     hidden_from_total = models.fields.BooleanField(default=False)
 
     courses = models.ManyToManyField(Course, through='CourseTimeSlotMember', related_name='timeslots')
+
+    def __str__(self):
+        return f'{self.date} van {self.start_time} tot {self.end_time}'
 
     @property
     def slot_delta(self) -> timedelta:
@@ -62,14 +65,18 @@ class Appointment(models.Model):
     student_name = models.fields.CharField(max_length=32, verbose_name="Name")
     email = models.fields.EmailField(verbose_name="E-mail")
     date = models.fields.DateField()
-    time = models.fields.TimeField()
+    start_time = models.fields.TimeField()
     duration = models.fields.IntegerField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     tests = models.ManyToManyField(Test)
 
+    @property
+    def end_time(self) -> time:
+        return (datetime.combine(date.today(), self.start_time) + timedelta(minutes=self.duration)).time()
+
     def __str__(self):
-        return f'{self.student_name} om {self.time} op {self.date}'
+        return f'{self.student_name} om {self.start_time} op {self.date}'
 
     class Meta:
         unique_together = ('email', 'date')
