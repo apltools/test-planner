@@ -14,12 +14,6 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 
 class AppointmentForm(forms.ModelForm):
 
-    def clean_start_time(self):
-        try:
-            self.cleaned_data.time = datetime.time.fromisoformat(self.data['start_time'])
-        except ValueError:
-            raise ValidationError(_("Geen tijd geselecteerd."), code='no-time')
-
     class Meta:
         model = Appointment
         fields = ['student_name', 'email', 'tests', 'duration']
@@ -31,11 +25,10 @@ class AppointmentForm(forms.ModelForm):
             'email': forms.TextInput(attrs={
                 'class': 'form-control'
             }),
-            'start_time': forms.HiddenInput(),
             'duration': forms.HiddenInput(),
         }
         error_messages = {
             'tests': {
-                'required': "Kies minimaal één toetje."
+                'required': "Kies minimaal één toetsje."
             },
         }

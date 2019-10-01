@@ -8,19 +8,24 @@
     <main class="container">
         <h1>{{ course.name }}</h1>
         <h2>{{ ts.date }} tussen {{ ts.start_time }} en {{ ts.end_time }}</h2>
-        <h3>Toetsje van {{ ts.slot_length }} minuten</h3>
+        <h3>Toetsje van {{ ts.test_length }} minuten</h3>
 
         <form method="post">
             <div class="row">
                 <div class="col-lg-6">
-                    <h2>Kies een tijd</h2>
-                    {{ form.star_time.errors }}
+                    {# Error for time #}
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                        {% for time in ts.student_slots %}
-                            <label class="btn btn-outline-primary btn-block">
-                                <input type="radio" name="start_time" value="{{ time }}"
-                                       autocomplete="off"> {{ time }}
-                            </label>
+                        {% for time_option in ts.student_slots %}
+                            {% with show=time_option.available %}
+                                <label class="btn btn-outline-{% if show %}primary{% else %}secondary{% endif %} btn-block {% if not show %}disabled{% endif %}">
+                                    <input type="radio"
+                                           name="start_time"
+                                           value="{{ time_option.time }}"
+                                           autocomplete="off"
+                                           {% if not show %}disabled{% endif %}>
+                                    {{ time_option.time }}
+                                </label>
+                            {% endwith %}
                         {% endfor %}
                     </div>
                 </div>

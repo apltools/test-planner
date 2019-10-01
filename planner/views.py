@@ -57,7 +57,7 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
         form = AppointmentForm(initial={
             'date': date_obj,
             'course': course,
-            'duration': ts.slot_length,
+            'duration': ts.test_length,
         },)
 
     context = {
