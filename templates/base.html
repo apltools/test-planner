@@ -11,7 +11,9 @@
     <link rel="stylesheet" href="{% static 'styles/fontawsome.min.css' %}">
 </head>
 <body>
-{% include 'nav.html' %}
+
+{% block nav %}{% endblock %}
+
 <main>
     {% block main %}{% endblock %}
 </main>

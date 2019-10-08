@@ -1,7 +1,7 @@
 import datetime
 
 from django.db import IntegrityError
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseForbidden, Http404
 from django.shortcuts import render
 
 from .forms import AppointmentForm
@@ -16,7 +16,8 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
     try:
         course = Course.objects.get(short_name=course_name)
     except Course.DoesNotExist:
-        return HttpResponseNotFound("Invalid course name")
+        raise Http404("Invalid course name")
+        # return HttpResponseNotFound("Invalid course name")
 
     test_moments = course.tests_this_week()
     dates = test_moments.values_list('date', flat=True)

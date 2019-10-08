@@ -1,7 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'planner/base.html' %}
 
 {% block title %}
     {{ course.name }} - Kies een datum
+{% endblock %}
+{% block nav-title %}
+    {{ course.name }}
 {% endblock %}
 
 {% block main %}

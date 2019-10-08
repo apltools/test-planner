@@ -1,13 +1,13 @@
-{% extends 'base.html' %}
+{% extends 'planner/base.html' %}
 
 {% block title %}
-    Choose a Date
+    {{ course.name }} - Kies een Tijd
 {% endblock %}
-
+{% block nav-title %}
+    {{ course.name }}
+{% endblock %}
 {% block main %}
     <main class="container pt-4 pb-4">
-
-
         <form method="post">
             <div class="row">
                 <div class="col-md-6">
@@ -15,6 +15,8 @@
                     <p><span class="far fa-calendar fa-fw"></span> {{ ts.date }}</p>
                     <p><span class="far fa-clock fa-fw"></span> {{ ts.test_length }} minuten</p>
                     <p><span class="fas fa-map-marker fa-fw"></span> {{ ts.location }}</p>
+
+                    <p>Wees op tijd en kies maximaal 3 toetsjes!</p>
 
                     {% csrf_token %}
 
@@ -36,25 +38,23 @@
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                         {% for time_option in student_slots %}
                             {% with show=time_option.available %}
-                                <label class="btn btn-outline-{% if show %}primary{% else %}secondary{% endif %}
-                                btn-block
-                                {% if not show %}
-                                    disabled
-                                {% else %}
-                                       {% if form.cleaned_data.start_time == time_option.time %}
-                                           active
-                                       {% endif %}
-                                {% endif %}">
+                                <label class="btn
+                                              btn-outline-{% if show %}primary{% else %}secondary{% endif %}
+                                              btn-block
+                                              {% if not show %}
+                                                  disabled
+                                              {% elif form.cleaned_data.start_time == time_option.time %}
+                                                  active
+                                              {% endif %}
+                                ">
                                     <input type="radio"
                                            name="start_time"
                                            value="{{ time_option.time }}"
                                            autocomplete="off"
                                             {% if not show %}
                                            disabled
-                                            {% else %}
-                                                {% if form.cleaned_data.start_time == time_option.time %}
+                                            {% elif form.cleaned_data.start_time == time_option.time %}
                                            checked
-                                                {% endif %}
                                             {% endif %}
                                     >
                                     {% if not show %}<s>{% endif %}
