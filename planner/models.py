@@ -123,7 +123,7 @@ class Appointment(models.Model):
 
     @property
     def end_time(self) -> datetime.time:
-        return (datetime.combine(datetime.date.today(), self.start_time) + datetime.timedelta(minutes=self.duration)).time()
+        return (datetime.datetime.combine(datetime.date.today(), self.start_time) + datetime.timedelta(minutes=self.duration)).time()
 
     def __str__(self):
         return f'{self.student_name} om {self.start_time} op {self.date}'

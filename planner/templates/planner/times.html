@@ -36,12 +36,27 @@
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                         {% for time_option in student_slots %}
                             {% with show=time_option.available %}
-                                <label class="btn btn-outline-{% if show %}primary{% else %}secondary{% endif %} btn-block {% if not show %}disabled{% endif %}">
+                                <label class="btn btn-outline-{% if show %}primary{% else %}secondary{% endif %}
+                                btn-block
+                                {% if not show %}
+                                    disabled
+                                {% else %}
+                                       {% if form.cleaned_data.start_time == time_option.time %}
+                                           active
+                                       {% endif %}
+                                {% endif %}">
                                     <input type="radio"
                                            name="start_time"
                                            value="{{ time_option.time }}"
                                            autocomplete="off"
-                                           {% if not show %}disabled{% endif %}>
+                                            {% if not show %}
+                                           disabled
+                                            {% else %}
+                                                {% if form.cleaned_data.start_time == time_option.time %}
+                                           checked
+                                                {% endif %}
+                                            {% endif %}
+                                    >
                                     {% if not show %}<s>{% endif %}
                                     {{ time_option.time }}
                                     {% if not show %}</s>{% endif %}
