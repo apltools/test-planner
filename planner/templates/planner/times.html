@@ -15,7 +15,7 @@
                 <div class="col-lg-6">
                     {# Error for time #}
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                        {% for time_option in ts.student_slots %}
+                        {% for time_option in student_slots %}
                             {% with show=time_option.available %}
                                 <label class="btn btn-outline-{% if show %}primary{% else %}secondary{% endif %} btn-block {% if not show %}disabled{% endif %}">
                                     <input type="radio"
@@ -23,7 +23,10 @@
                                            value="{{ time_option.time }}"
                                            autocomplete="off"
                                            {% if not show %}disabled{% endif %}>
+                                    {% if not show %}<s>{% endif %}
                                     {{ time_option.time }}
+                                    {% if not show %}</s>{% endif %}
+
                                 </label>
                             {% endwith %}
                         {% endfor %}

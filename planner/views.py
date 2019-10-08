@@ -1,11 +1,11 @@
 import datetime
 
 from django.db import IntegrityError
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseNotAllowed, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render
 
 from .forms import AppointmentForm
-from .models import Course, TimeSlot, Appointment
+from .models import Course, TestMoment, Appointment
 
 
 def index(request):
@@ -18,11 +18,11 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
     except Course.DoesNotExist:
         return HttpResponseNotFound("Invalid course name")
 
-    tss = course.timeslots.all()
-    dates = tss.values_list('date', flat=True)
+    test_moments = course.tests_this_week()
+    dates = test_moments.values_list('date', flat=True)
 
     context = {
-        'tss': tss,
+        'test_moments': test_moments,
         'dates': dates,
         'course': course
     }
@@ -31,9 +31,16 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
 
 
 def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpResponse:
-    course = Course.objects.get(short_name=course_name)
-    date_obj = datetime.date.fromisoformat(date)
-    ts = TimeSlot.objects.get(date=date_obj)
+    try:
+        course = Course.objects.get(short_name=course_name)
+    except Course.DoesNotExist:
+        return HttpResponseNotFound("Invalid Course")
+
+    try:
+        date_obj = datetime.date.fromisoformat(date)
+        ts = TestMoment.objects.get(date=date_obj)
+    except (TestMoment.DoesNotExist, ValueError):
+        return HttpResponseNotFound("Invalid date")
 
     if request.method == "POST":
         form = AppointmentForm(request.POST)
@@ -51,19 +58,20 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
                 app.tests.set(form.cleaned_data['tests'])
                 return render(request, 'planner/done.html')
             except IntegrityError:
-                return HttpResponseForbidden()
+                return HttpResponseForbidden("Duplicate appointment on date is not allowed")
 
     else:
         form = AppointmentForm(initial={
             'date': date_obj,
             'course': course,
             'duration': ts.test_length,
-        },)
+        }, )
 
     context = {
         'course': course,
         'ts': ts,
-        'form': form
+        'form': form,
+        'student_slots': ts.student_slots_for_course(course),
     }
 
     return render(request, 'planner/times.html', context=context)

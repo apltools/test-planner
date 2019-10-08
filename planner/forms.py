@@ -1,8 +1,4 @@
-import datetime
-
 from django import forms
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
 
 from .models import Appointment
 
@@ -13,7 +9,6 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 
 
 class AppointmentForm(forms.ModelForm):
-
     class Meta:
         model = Appointment
         fields = ['student_name', 'email', 'tests', 'duration']

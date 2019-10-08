@@ -1,9 +1,11 @@
 import random
-from datetime import timedelta, datetime, date, time
+from typing import List
+import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext as _
+
 
 class User(AbstractUser):
     pass
@@ -16,12 +18,28 @@ class Course(models.Model):
     def __str__(self):
         return self.short_name
 
+    def tests_this_week(self):
+        today = datetime.date.today()
+        next_week = today + datetime.timedelta(days=7)
+
+        return self.test_moments.filter(date__gt=today, date__lte=next_week, hidden_from_total=False).order_by('date')
+
     class Meta:
         verbose_name = _("Vak")
         verbose_name_plural = _("Vakken")
 
 
-class TimeSlot(models.Model):
+class TimeOption:
+
+    def __init__(self, time: datetime.time, available: bool = True):
+        self.time: datetime.time = time
+        self.available: bool = available
+
+    class Meta:
+        managed = False
+
+
+class TestMoment(models.Model):
     location = models.fields.CharField(max_length=16, verbose_name=_("Locatie"))  # Own model with capacity?
     date = models.fields.DateField(verbose_name=_("Datum"))
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
@@ -29,23 +47,25 @@ class TimeSlot(models.Model):
     test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
     hidden_from_total = models.fields.BooleanField(default=False)
 
-    courses = models.ManyToManyField(Course, through='CourseTimeSlotMember', related_name='timeslots', verbose_name=_("Vakken"))
+    courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
+                                     verbose_name=_("Vakken"))
 
-    def __str__(self):
+
+    def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
 
     @property
-    def slot_delta(self) -> timedelta:
+    def slot_delta(self) -> datetime.timedelta:
         """Slot length as a timedelta"""
-        return timedelta(minutes=self.test_length)
+        return datetime.timedelta(minutes=self.test_length)
 
     @property
-    def student_slots(self):
+    def student_slots(self) -> List[TimeOption]:
         """List of possible time slots."""
-        cur_time = datetime.combine(date.today(), self.start_time)
-        end_time = datetime.combine(date.today(), self.end_time)
+        cur_time = datetime.datetime.combine(datetime.date.today(), self.start_time)
+        end_time = datetime.datetime.combine(datetime.date.today(), self.end_time)
 
-        slots = []
+        slots: List[TimeOption] = []
 
         while cur_time + self.slot_delta <= end_time:
             slots.append(TimeOption(cur_time.time()))
@@ -53,22 +73,29 @@ class TimeSlot(models.Model):
 
         return slots
 
+    def student_slots_for_course(self, course: Course) -> List[TimeOption]:
+        slots = self.student_slots
+        places = self.coursemoment_set.get(course=course).places
+
+        for slot in slots:
+            # Count all appointments for current slot
+            slot.available = self.time_available(slot.time, course)
+
+        return slots
+
+    def time_available(self, time: datetime.time, course: Course) -> bool:
+        appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(course=course).count()
+        return appointments < self.coursemoment_set.get(course=course).places
+
+
     class Meta:
-        verbose_name = _("Tijdslot")
-        verbose_name_plural = _("Tijdslots")
+        verbose_name = _("Toetsmoment")
+        verbose_name_plural = _("Toetsmomenten")
 
-class TimeOption:
 
-    def __init__(self, time: datetime.time, available: bool = True):
-        self.time: datetime.time = time
-        # self.available: bool = available
-        self.available:bool = bool(random.getrandbits(1))
-    class Meta:
-        managed = False
-
-class CourseTimeSlotMember(models.Model):
+class CourseMoment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_("Vak"))
-    time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, verbose_name=_("Tijdsslot"))
+    time_slot = models.ForeignKey(TestMoment, on_delete=models.CASCADE, verbose_name=_("Toetsmoment"))
 
     places = models.fields.IntegerField(verbose_name=_("Plekken"))
 
@@ -95,8 +122,8 @@ class Appointment(models.Model):
     tests = models.ManyToManyField(Test, verbose_name=_("Toetsjes"))
 
     @property
-    def end_time(self) -> time:
-        return (datetime.combine(date.today(), self.start_time) + timedelta(minutes=self.duration)).time()
+    def end_time(self) -> datetime.time:
+        return (datetime.combine(datetime.date.today(), self.start_time) + datetime.timedelta(minutes=self.duration)).time()
 
     def __str__(self):
         return f'{self.student_name} om {self.start_time} op {self.date}'
@@ -105,4 +132,3 @@ class Appointment(models.Model):
         unique_together = ('email', 'date')
         verbose_name = _("Afspraak")
         verbose_name_plural = _("Afspraken")
-
