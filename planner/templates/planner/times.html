@@ -1,19 +1,38 @@
-{% extends 'planner/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
     Choose a Date
 {% endblock %}
 
-{% block body %}
-    <main class="container">
-        <h1>{{ course.name }}</h1>
-        <h2>{{ ts.date }} tussen {{ ts.start_time }} en {{ ts.end_time }}</h2>
-        <h3>Toetsje van {{ ts.test_length }} minuten</h3>
+{% block main %}
+    <main class="container pt-4 pb-4">
+
 
         <form method="post">
             <div class="row">
-                <div class="col-lg-6">
-                    {# Error for time #}
+                <div class="col-md-6">
+                    <h4>Plan een toetsje in voor {{ course.name }}</h4>
+                    <p><span class="far fa-calendar fa-fw"></span> {{ ts.date }}</p>
+                    <p><span class="far fa-clock fa-fw"></span> {{ ts.test_length }} minuten</p>
+                    <p><span class="fas fa-map-marker fa-fw"></span> {{ ts.location }}</p>
+
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        {% if not field.is_hidden %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field.errors }}
+                                {{ field }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {{ form.duration }}
+                </div>
+
+                <div class="col-md-6">
+                    <h4>Kies een tijd</h4>
+                    {{ form.start_time.errors }}
                     <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
                         {% for time_option in student_slots %}
                             {% with show=time_option.available %}
@@ -31,14 +50,10 @@
                             {% endwith %}
                         {% endfor %}
                     </div>
-                </div>
-
-                <div class="col-lg-6">
-                    {% csrf_token %}
-                    {{ form }}
                     <br>
-                    <button type="submit" class="btn btn-primary">Verstuur</button>
+
                 </div>
+                <button type="submit" class="btn btn-primary m-3">Verstuur</button>
             </div>
         </form>
     </main>

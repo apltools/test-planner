@@ -9,7 +9,7 @@ from .models import Course, TestMoment, Appointment
 
 
 def index(request):
-    return render(request, 'planner/dates.html')
+    return render(request, 'planner/index.html')
 
 
 def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:

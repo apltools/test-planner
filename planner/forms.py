@@ -11,7 +11,7 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
-        fields = ['student_name', 'email', 'tests', 'duration']
+        fields = ['student_name', 'email', 'tests', 'duration', 'start_time']
         widgets = {
             'tests': CheckBoxSelectMultipleBootstrap(),
             'student_name': forms.TextInput(attrs={
@@ -21,9 +21,13 @@ class AppointmentForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'duration': forms.HiddenInput(),
+            'start_time': forms.HiddenInput(),
         }
         error_messages = {
             'tests': {
                 'required': "Kies minimaal één toetsje."
             },
+            'start_time': {
+                'required': "Kies een tijd"
+            }
         }

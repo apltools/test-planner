@@ -1,18 +1,31 @@
-{% extends 'planner/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}
-    Kies een datum
+    {{ course.name }} - Kies een datum
 {% endblock %}
 
-{% block body %}
+{% block main %}
     <main class="container">
-        <h1>{{ course.name }}</h1>
-        <div class="btn-group-vertical" role="group">
-            {% for test_moment in test_moments %}
-                {% url 'choose_time' course_name=course.short_name date=test_moment.date|slugify as date_url %}
-                <a class="btn btn-outline-primary" href="{{ date_url }}">{{ test_moment.date }} tussen {{ test_moment.start_time }}
-                    en {{ test_moment.end_time }}</a>
-            {% endfor %}
+        <h3 class="pt-1 pb-1">{{ course.name }}</h3>
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <p>Hier komt misschien iets te staan over hoe dit werkt? Deze tekst kan dynamisch worden per vak, of algemeen voor alles</p>
+            </div>
+            <div class="col-12 col-md-6">
+                {% if test_moments %}
+                    <h4 >Kies een datum</h4>
+                    <div class="btn-group-vertical" role="group">
+                        {% for test_moment in test_moments %}
+                            {% url 'choose_time' course_name=course.short_name date=test_moment.date|slugify as date_url %}
+                            <a class="btn btn-outline-primary" href="{{ date_url }}">{{ test_moment.date }}
+                                tussen {{ test_moment.start_time }}
+                                en {{ test_moment.end_time }}</a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    Nope
+                {% endif %}
+            </div>
         </div>
     </main>
 {% endblock %}
