@@ -8,6 +8,11 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 # Install packages
+RUN apt update && apt install netcat -y
 RUN pip install pipenv
 COPY Pipfile Pipfile.lock /code/
 RUN pipenv install --system
+
+COPY ./docker-entrypoint.dev.sh /code/docker-entrypoint.dev.sh
+
+ENTRYPOINT ["/code/docker-entrypoint.dev.sh"]

@@ -22,6 +22,3 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('planner.urls')),
 ]
-
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-urlpatterns += staticfiles_urlpatterns()

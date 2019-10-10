@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:12
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.prod
+    command: gunicorn test_planner.wsgi -b 0.0.0.0:8000
+    env_file: .env.prod
+    volumes:
+      - static_files:/code/staticfiles
+    expose:
+      - 8000
+    depends_on:
+      - db
+  nginx:
+    build: ./nginx
+    ports:
+      - 1337:80
+    depends_on:
+      - web
+    volumes:
+      - static_files:/code/staticfiles
+volumes:
+  postgres_data:
+  static_files:
