@@ -1,6 +1,5 @@
-import random
 from typing import List
-import datetime
+import datetime as dt
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -19,8 +18,8 @@ class Course(models.Model):
         return self.short_name
 
     def tests_this_week(self):
-        today = datetime.date.today()
-        next_week = today + datetime.timedelta(days=7)
+        today = dt.date.today()
+        next_week = today + dt.timedelta(days=7)
 
         return self.test_moments.filter(date__gt=today, date__lte=next_week, hidden_from_total=False).order_by('date')
 
@@ -31,8 +30,8 @@ class Course(models.Model):
 
 class TimeOption:
 
-    def __init__(self, time: datetime.time, available: bool = True):
-        self.time: datetime.time = time
+    def __init__(self, time: dt.time, available: bool = True):
+        self.time: dt.time = time
         self.available: bool = available
 
     class Meta:
@@ -51,19 +50,22 @@ class TestMoment(models.Model):
                                      verbose_name=_("Vakken"))
 
 
+    def appointments_for_moment(self) -> List['Appointment']:
+        return Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
+
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
 
     @property
-    def slot_delta(self) -> datetime.timedelta:
+    def slot_delta(self) -> dt.timedelta:
         """Slot length as a timedelta"""
-        return datetime.timedelta(minutes=self.test_length)
+        return dt.timedelta(minutes=self.test_length)
 
     @property
     def student_slots(self) -> List[TimeOption]:
         """List of possible time slots."""
-        cur_time = datetime.datetime.combine(datetime.date.today(), self.start_time)
-        end_time = datetime.datetime.combine(datetime.date.today(), self.end_time)
+        cur_time = dt.datetime.combine(dt.date.today(), self.start_time)
+        end_time = dt.datetime.combine(dt.date.today(), self.end_time)
 
         slots: List[TimeOption] = []
 
@@ -83,7 +85,7 @@ class TestMoment(models.Model):
 
         return slots
 
-    def time_available(self, time: datetime.time, course: Course) -> bool:
+    def time_available(self, time: dt.time, course: Course) -> bool:
         appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(course=course).count()
         return appointments < self.coursemoment_set.get(course=course).places
 
@@ -114,6 +116,7 @@ class Test(models.Model):
 class Appointment(models.Model):
     student_name = models.fields.CharField(max_length=32, verbose_name=_("Naam"))
     email = models.fields.EmailField(verbose_name=_("E-mail"))
+    student_nr = models.fields.IntegerField(verbose_name=_("Studentnummer"), null=True)
     date = models.fields.DateField(verbose_name=_("Datum"))
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     duration = models.fields.IntegerField(verbose_name=_("Lengte"))
@@ -122,13 +125,16 @@ class Appointment(models.Model):
     tests = models.ManyToManyField(Test, verbose_name=_("Toetsjes"))
 
     @property
-    def end_time(self) -> datetime.time:
-        return (datetime.datetime.combine(datetime.date.today(), self.start_time) + datetime.timedelta(minutes=self.duration)).time()
-
+    def end_time(self) -> dt.time:
+        return add_time(self.start_time, self.duration)
     def __str__(self):
         return f'{self.student_name} om {self.start_time} op {self.date}'
 
     class Meta:
-        unique_together = ('email', 'date')
+        unique_together = ('student_nr', 'date')
         verbose_name = _("Afspraak")
         verbose_name_plural = _("Afspraken")
+
+
+def add_time(time: dt.time, hours: int=0, minutes: int=0) -> dt.time:
+    return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()

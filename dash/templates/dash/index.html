@@ -1,6 +1,62 @@
 {% extends 'dash/base.html' %}
 {% block main %}
-<div class="container">
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-2 d-print-none">
+                <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link active" id="home-tab" role="tab" href="#home" data-toggle="pill">Home</a>
+                    {% for moment, _ in moment_data %}
+                        <a class="nav-link" id="date-{{ moment.id | slugify }}-tab" role="tab"
+                           href="#date-{{ moment.id | slugify }}" data-toggle="pill">{{ moment.date }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div class="tab-content">
+                    <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        Blabla, this is the homepage
+                    </div>
+                    {% for moment, apps in moment_data %}
+                        <div class="tab-pane fade" id="date-{{ moment.id | slugify }}" role="tabpanel"
+                             aria-labelledby="date-{{ moment.id | slugify }}-tab">
+                            <h3>{{ moment.date }}</h3>
+                            {% for app in apps %}
+                                <p>{{ app }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
-</div>
+{% block script %}
+    <script>
+        $(document).ready(() => {
+            let url = location.href.replace(/\/$/, "");
+
+            if (location.hash) {
+                const hash = url.split("#");
+                $('#dateTabList a[href="#' + hash[1] + '"]').tab("show");
+                url = location.href.replace(/\/#/, "#");
+                history.replaceState(null, null, url);
+                setTimeout(() => {
+                    $(window).scrollTop(0);
+                }, 400);
+            }
+
+            $('a[data-toggle="pill"]').on("click", function () {
+                let newUrl;
+                const hash = $(this).attr("href");
+                if (hash === "#home") {
+                    newUrl = url.split("#")[0] + "/";
+                } else {
+                    newUrl = url.split("#")[0] + hash;
+                }
+                {#newUrl += "/";#}
+                history.replaceState(null, null, newUrl);
+            });
+        });
+    </script>
 {% endblock %}

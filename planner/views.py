@@ -1,7 +1,7 @@
 import datetime
 
 from django.db import IntegrityError
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, HttpResponseForbidden, Http404
+from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 
 from .forms import AppointmentForm
@@ -17,7 +17,6 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
         course = Course.objects.get(short_name=course_name)
     except Course.DoesNotExist:
         raise Http404("Invalid course name")
-        # return HttpResponseNotFound("Invalid course name")
 
     test_moments = course.tests_this_week()
     dates = test_moments.values_list('date', flat=True)
@@ -35,13 +34,13 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
     try:
         course = Course.objects.get(short_name=course_name)
     except Course.DoesNotExist:
-        return HttpResponseNotFound("Invalid Course")
+        raise Http404("Invalid Course")
 
     try:
         date_obj = datetime.date.fromisoformat(date)
         ts = TestMoment.objects.get(date=date_obj)
     except (TestMoment.DoesNotExist, ValueError):
-        return HttpResponseNotFound("Invalid date")
+        raise Http404("Invalid date")
 
     if request.method == "POST":
         form = AppointmentForm(request.POST)
@@ -49,6 +48,7 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
         if form.is_valid():
             app = Appointment()
             app.student_name = form.cleaned_data['student_name']
+            app.student_nr = form.cleaned_data['student_nr']
             app.email = form.cleaned_data['email']
             app.date = date_obj
             app.course = course
@@ -59,9 +59,10 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
                 app.tests.set(form.cleaned_data['tests'])
                 return render(request, 'planner/done.html')
             except IntegrityError:
-                return HttpResponseForbidden("Duplicate appointment on date is not allowed")
+                raise Http404("Duplicate appointment on date is not allowed")
 
     else:
+        # Config for new form.
         form = AppointmentForm(initial={
             'date': date_obj,
             'course': course,
