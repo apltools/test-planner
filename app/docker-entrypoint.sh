@@ -11,4 +11,3 @@ python manage.py migrate
 # Start server
 echo "Starting server"
 gunicorn test_planner.wsgi -b 0.0.0.0:8000
-#python /code/manage.py runserver 0.0.0.0:8000

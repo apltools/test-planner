@@ -8,8 +8,13 @@ services:
   web:
     build: ./app
     entrypoint: ./docker-entrypoint.sh
-#    entrypoint: ["sh", "-c", "sleep 2073600"]
-
+    environment:
+      - DEBUG=0
+      - SQL_ENGINE=django.db.backends.postgresql
+      - SQL_NAME=postgres
+      - SQL_USER=postgres
+      - SQL_HOST=db
+      - SQL_PORT=5432
     ports:
       - 8000:8000
     depends_on:
