@@ -13,7 +13,7 @@ RUN pip install pipenv
 COPY Pipfile Pipfile.lock /code/
 RUN pipenv install --system
 
-LABEL version=1
+ARG BUILD=1
 
 COPY . /code/
 

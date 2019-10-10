@@ -10,14 +10,9 @@ services:
       context: ./app
       dockerfile: Dockerfile.dev
     command: python /code/manage.py runserver 0.0.0.0:8000
+    env_file: .env
     environment:
-      - DATABASE=postgres
       - DEBUG=1
-      - SQL_ENGINE=django.db.backends.postgresql
-      - SQL_NAME=postgres
-      - SQL_USER=postgres
-      - SQL_HOST=db_dev
-      - SQL_PORT=5432
     ports:
       - 8000:8000
     volumes:
