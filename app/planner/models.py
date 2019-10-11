@@ -46,6 +46,8 @@ class TestMoment(models.Model):
     test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
     hidden_from_total = models.fields.BooleanField(default=False)
 
+    allowed_tests = models.ManyToManyField('Test')
+
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
 

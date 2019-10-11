@@ -67,7 +67,9 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
             'date': date_obj,
             'course': course,
             'duration': ts.test_length,
-        }, )
+        })
+
+    form.fields['tests'].queryset = ts.allowed_tests.all()
 
     context = {
         'course': course,
