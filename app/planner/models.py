@@ -44,9 +44,7 @@ class TestMoment(models.Model):
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     end_time = models.fields.TimeField(verbose_name=_("Eindtijd"))
     test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
-    hidden_from_total = models.fields.BooleanField(default=False)
-
-    allowed_tests = models.ManyToManyField('Test')
+    hidden_from_total = models.fields.BooleanField(default=False, verbose_name=_("Verborgen"))
 
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
@@ -79,10 +77,8 @@ class TestMoment(models.Model):
 
     def student_slots_for_course(self, course: Course) -> List[TimeOption]:
         slots = self.student_slots
-        places = self.coursemoment_set.get(course=course).places
 
         for slot in slots:
-            # Count all appointments for current slot
             slot.available = self.time_available(slot.time, course)
 
         return slots
@@ -101,6 +97,7 @@ class CourseMoment(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_("Vak"))
     time_slot = models.ForeignKey(TestMoment, on_delete=models.CASCADE, verbose_name=_("Toetsmoment"))
 
+    allowed_tests = models.ManyToManyField('Test', verbose_name=_("Toetsjes"))
     places = models.fields.IntegerField(verbose_name=_("Plekken"))
 
 

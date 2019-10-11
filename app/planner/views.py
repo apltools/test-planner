@@ -31,6 +31,7 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
 
 
 def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpResponse:
+    """View for choosing a time."""
     try:
         course = Course.objects.get(short_name=course_name)
     except Course.DoesNotExist:
@@ -38,7 +39,7 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
 
     try:
         date_obj = datetime.date.fromisoformat(date)
-        ts = TestMoment.objects.get(date=date_obj)
+        test_moment = TestMoment.objects.get(date=date_obj)
     except (TestMoment.DoesNotExist, ValueError):
         raise Http404("Invalid date")
 
@@ -53,29 +54,32 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
             app.date = date_obj
             app.course = course
             app.start_time = form.data["start_time"]
-            app.duration = form.data["duration"]
+            # app.duration = form.data["duration"]
+            app.duration = test_moment.test_length
+
             try:
                 app.save()
-                app.tests.set(form.cleaned_data['tests'])
-                return render(request, 'planner/done.html')
             except IntegrityError:
                 raise Http404("Duplicate appointment on date is not allowed")
 
+            app.tests.set(form.cleaned_data['tests'])
+            return render(request, 'planner/done.html')
+
     else:
-        # Config for new form.
+        # Config for fresh form.
         form = AppointmentForm(initial={
             'date': date_obj,
             'course': course,
-            'duration': ts.test_length,
         })
 
-    form.fields['tests'].queryset = ts.allowed_tests.all()
+    form.fields['tests'].queryset = test_moment.coursemoment_set.get(course__exact=course).allowed_tests.all()
+    # form.fields['tests'].queryset = test_moment.allowed_tests.all()
 
     context = {
         'course': course,
-        'ts': ts,
+        'ts': test_moment,
         'form': form,
-        'student_slots': ts.student_slots_for_course(course),
+        'student_slots': test_moment.student_slots_for_course(course),
     }
 
     return render(request, 'planner/times.html', context=context)

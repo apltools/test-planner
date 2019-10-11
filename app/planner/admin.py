@@ -7,27 +7,24 @@ from django import forms
 from .models import User, Course, TestMoment, Test, Appointment, CourseMoment
 
 
-class CourseTimeSlotMemberInline(admin.TabularInline):
-    model = CourseMoment
-    extra = 1
-
-
-class TestMomentForm(forms.ModelForm):
+class CourseTimeSlotForm(forms.ModelForm):
     class Meta:
-        model = TestMoment
+        model = CourseMoment
         fields = '__all__'
         widgets = {
             'allowed_tests': forms.CheckboxSelectMultiple
         }
 
 
+class CourseTimeSlotMemberInline(admin.TabularInline):
+    model = CourseMoment
+    extra = 1
+    form = CourseTimeSlotForm
+
+
 class TestMomentAdmin(admin.ModelAdmin):
     inlines = (CourseTimeSlotMemberInline,)
-    form = TestMomentForm
 
-    # formfield_overrides = {
-    #     models.ManyToManyField: {'widget': CheckboxSelectMultiple}
-    # }
 
 
 admin.site.register(User)

@@ -5,7 +5,7 @@
 ### Create a `.env`-file
 
 ```shell script
-SECRET_KEY=
+SECRET_KEY=""
 DATABASE=postgres
 SQL_ENGINE=django.db.backends.postgresql
 SQL_NAME=postgres
@@ -17,10 +17,9 @@ SQL_PORT=5432
 Please add a `SECRET_KEY`, to this file
 
 
-### Generate `SECRET_KEY`
+### Generate `SECRET_KEY` using python
 ```python
-import random
-''.join([random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for _ in range(50)])
+import random;print(''.join([random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for _ in range(50)]))
 ```
 
 ### Start the server
