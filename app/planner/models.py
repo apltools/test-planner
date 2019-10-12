@@ -1,5 +1,5 @@
-from typing import List
 import datetime as dt
+from typing import List
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -49,7 +49,6 @@ class TestMoment(models.Model):
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
 
-
     def appointments_for_moment(self) -> List['Appointment']:
         return Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
 
@@ -84,9 +83,9 @@ class TestMoment(models.Model):
         return slots
 
     def time_available(self, time: dt.time, course: Course) -> bool:
-        appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(course=course).count()
+        appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(
+            course=course).count()
         return appointments < self.coursemoment_set.get(course=course).places
-
 
     class Meta:
         verbose_name = _("Toetsmoment")
@@ -126,6 +125,7 @@ class Appointment(models.Model):
     @property
     def end_time(self) -> dt.time:
         return add_time(self.start_time, self.duration)
+
     def __str__(self):
         return f'{self.student_name} om {self.start_time} op {self.date}'
 
@@ -135,5 +135,5 @@ class Appointment(models.Model):
         verbose_name_plural = _("Afspraken")
 
 
-def add_time(time: dt.time, hours: int=0, minutes: int=0) -> dt.time:
+def add_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
     return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()

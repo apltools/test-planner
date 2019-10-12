@@ -1,30 +1,18 @@
 from django.contrib import admin
-# from django.db import models
-# from django.forms import CheckboxSelectMultiple
-# from django.forms import CheckboxSelectMultiple, ModelForm
-from django import forms
 
+from .forms import CourseTimeSlotForm
 from .models import User, Course, TestMoment, Test, Appointment, CourseMoment
-
-
-class CourseTimeSlotForm(forms.ModelForm):
-    class Meta:
-        model = CourseMoment
-        fields = '__all__'
-        widgets = {
-            'allowed_tests': forms.CheckboxSelectMultiple
-        }
 
 
 class CourseTimeSlotMemberInline(admin.TabularInline):
     model = CourseMoment
     extra = 1
     form = CourseTimeSlotForm
+    # filter_horizontal  = ('allowed_tests',)
 
 
 class TestMomentAdmin(admin.ModelAdmin):
     inlines = (CourseTimeSlotMemberInline,)
-
 
 
 admin.site.register(User)

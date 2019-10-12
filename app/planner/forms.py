@@ -1,6 +1,15 @@
 from django import forms
 
-from .models import Appointment
+from .models import Appointment, CourseMoment
+
+
+class CourseTimeSlotForm(forms.ModelForm):
+    class Meta:
+        model = CourseMoment
+        fields = '__all__'
+        widgets = {
+            'allowed_tests': forms.CheckboxSelectMultiple
+        }
 
 
 class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
@@ -11,7 +20,7 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
-        fields = ['student_name','student_nr', 'email', 'tests', 'start_time',]
+        fields = ['student_name', 'student_nr', 'email', 'tests', 'start_time', ]
         widgets = {
             'tests': CheckBoxSelectMultipleBootstrap(),
             'student_name': forms.TextInput(attrs={

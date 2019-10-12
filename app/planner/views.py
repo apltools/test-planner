@@ -54,7 +54,6 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
             app.date = date_obj
             app.course = course
             app.start_time = form.data["start_time"]
-            # app.duration = form.data["duration"]
             app.duration = test_moment.test_length
 
             try:
@@ -73,7 +72,6 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
         })
 
     form.fields['tests'].queryset = test_moment.coursemoment_set.get(course__exact=course).allowed_tests.all()
-    # form.fields['tests'].queryset = test_moment.allowed_tests.all()
 
     context = {
         'course': course,
