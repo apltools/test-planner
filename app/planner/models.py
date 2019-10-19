@@ -99,6 +99,9 @@ class CourseMoment(models.Model):
     allowed_tests = models.ManyToManyField('Test', verbose_name=_("Toetsjes"))
     places = models.fields.IntegerField(verbose_name=_("Plekken"))
 
+    class Meta:
+        unique_together = ('course', 'time_slot')
+
 
 class Test(models.Model):
     name = models.fields.CharField(max_length=32)

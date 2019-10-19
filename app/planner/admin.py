@@ -7,6 +7,7 @@ from .models import User, Course, TestMoment, Test, Appointment, CourseMoment
 class CourseTimeSlotMemberInline(admin.TabularInline):
     model = CourseMoment
     extra = 1
+    # One of these lines is the better solution :)
     form = CourseTimeSlotForm
     # filter_horizontal  = ('allowed_tests',)
 

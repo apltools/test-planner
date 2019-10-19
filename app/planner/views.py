@@ -3,6 +3,7 @@ import datetime
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
+from django.views.generic import View
 
 from .forms import AppointmentForm
 from .models import Course, TestMoment, Appointment
@@ -62,22 +63,27 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
                 raise Http404("Duplicate appointment on date is not allowed")
 
             app.tests.set(form.cleaned_data['tests'])
-            return render(request, 'planner/done.html')
+            return done(request, course=course, app=app, tm=test_moment)
 
     else:
-        # Config for fresh form.
-        form = AppointmentForm(initial={
-            'date': date_obj,
-            'course': course,
-        })
+        form = AppointmentForm()
 
+    # Insert the allowed tests for the course into the form.
     form.fields['tests'].queryset = test_moment.coursemoment_set.get(course__exact=course).allowed_tests.all()
 
     context = {
         'course': course,
-        'ts': test_moment,
+        'test_moment': test_moment,
         'form': form,
         'student_slots': test_moment.student_slots_for_course(course),
     }
 
     return render(request, 'planner/times.html', context=context)
+
+def done(request, *,course=Course.objects.get(short_name='prog1'), app=Appointment.objects.filter(course__short_name__exact='prog1').first(), tm=TestMoment.objects.get(id=1)):
+    context = {
+        'app': app,
+        'course': course,
+        'tm': tm
+    }
+    return render(request, 'planner/done.html', context=context)
