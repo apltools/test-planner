@@ -1,9 +1,11 @@
 import datetime as dt
-from typing import List
+from collections import defaultdict
+from typing import List, Dict
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext as _
+import datetime as dt
 
 
 class User(AbstractUser):
@@ -49,8 +51,13 @@ class TestMoment(models.Model):
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
 
-    def appointments_for_moment(self) -> List['Appointment']:
-        return Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
+    def appointments_for_moment(self) -> Dict[dt.time, List['Appointment']]:
+        apps_time = defaultdict(list)
+        appointments = Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
+        for appointment in appointments:
+            apps_time[appointment.start_time].append(appointment)
+
+        return apps_time
 
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'

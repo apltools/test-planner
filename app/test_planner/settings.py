@@ -105,6 +105,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email config
+
+EMAIL_FROM = os.environ.get('EMAIL_FROM', 'tests@localhost')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '25'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
+EMAIL_USE_SSL = bool(int(os.environ.get('EMAIL_USE_SSL', '0')))
+EMAIL_USE_TLS = bool(int(os.environ.get('EMAIL_USE_TLS', '0')))
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 

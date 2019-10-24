@@ -14,14 +14,19 @@
             <div class="col-md-10">
                 <div class="tab-content">
                     <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home-tab">
-                        Blabla, this is the homepage
+                        Kies een datum
                     </div>
-                    {% for moment, apps in moment_data %}
+                    {% for moment, apps_dict in moment_data %}
                         <div class="tab-pane fade" id="date-{{ moment.id | slugify }}" role="tabpanel"
                              aria-labelledby="date-{{ moment.id | slugify }}-tab">
                             <h3>{{ moment.date }}</h3>
-                            {% for app in apps %}
-                                <p>{{ app }}</p>
+                            {% for time, apps in apps_dict %}
+                                <p>{{ time }}</p>
+                                <ul>
+                                {% for appointment in apps %}
+                                      <li>{{ appointment }}</li>
+                                {% endfor %}
+                                </ul>
                             {% endfor %}
                         </div>
                     {% endfor %}
