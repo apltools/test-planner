@@ -30,6 +30,17 @@ services:
       - web
     volumes:
       - static_files:/code/staticfiles
+      - letsencrypt:/etc/letsencrypt
+      - www-certbot:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - www-certbot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 volumes:
   postgres_data:
   static_files:
+  letsencrypt:
+  www-certbot:
