@@ -3,7 +3,8 @@ import datetime
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
-from django.views.generic import View
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .forms import AppointmentForm
 from .models import Course, TestMoment, Appointment
@@ -80,10 +81,17 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
 
     return render(request, 'planner/times.html', context=context)
 
-def done(request, *,course=Course.objects.get(short_name='prog1'), app=Appointment.objects.filter(course__short_name__exact='prog1').first(), tm=TestMoment.objects.get(id=1)):
+def done(request, *,course, app, tm):
     context = {
         'app': app,
         'course': course,
         'tm': tm
     }
     return render(request, 'planner/done.html', context=context)
+
+def send_confirm_email(*, course, appointment, test_moment):
+    send_mail(subject="",
+              message="",
+              from_email= settings.EMAIL_FROM,
+              recipient_list=[appointment.email])
+    pass
