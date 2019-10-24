@@ -22,8 +22,9 @@ staging=1 # Set to 1 if you're testing your setup to avoid hitting request limit
 #if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] || [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
 echo "### Downloading recommended TLS parameters ..."
 docker-compose run --rm --entrypoint "\
-  wget https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/tls_configs/options-ssl-nginx.conf -O /etc/letsencrypt/options-ssl-nginx.conf;\
-  wegt https://raw.githubusercontent.com/certbot/certbot/master/certbot/ssl-dhparams.pem -O /etc/letsencrypt/ssl-dhparams.pem
+  wget https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/tls_configs/options-ssl-nginx.conf -O /etc/letsencrypt/options-ssl-nginx.conf &&\
+  wget https://raw.githubusercontent.com/certbot/certbot/master/certbot/ssl-dhparams.pem -O /etc/letsencrypt/ssl-dhparams.pem
+
 " certbot
 echo
 #fi
