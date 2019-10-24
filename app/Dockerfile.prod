@@ -19,7 +19,7 @@ RUN pip install pipenv
 COPY Pipfile Pipfile.lock /code/
 RUN pipenv install --system
 
-ARG BUILD=2
+ARG buildno
 
 COPY . /code/
 

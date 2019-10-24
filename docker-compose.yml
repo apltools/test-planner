@@ -9,6 +9,8 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile.prod
+      args:
+        - buildno=1
     command: gunicorn test_planner.wsgi -b 0.0.0.0:8000
     env_file: .env
     environment:
