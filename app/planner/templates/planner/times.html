@@ -16,8 +16,6 @@
                     <p><span class="far fa-clock fa-fw"></span> {{ test_moment.test_length }} minuten</p>
                     <p><span class="fas fa-map-marker fa-fw"></span> {{ test_moment.location }}</p>
 
-                    <p>Wees op tijd en kies maximaal 3 toetsjes!</p>
-
                     {% csrf_token %}
 
                     {% for field in form %}

@@ -1,4 +1,7 @@
 {% extends 'dash/base.html' %}
+{% block title %}
+    Dashboard
+{% endblock %}
 {% block main %}
     <div class="container mt-3">
         <div class="row">
@@ -23,9 +26,14 @@
                             {% for time, apps in apps_dict %}
                                 <p>{{ time }}</p>
                                 <ul>
-                                {% for appointment in apps %}
-                                      <li>{{ appointment }}</li>
-                                {% endfor %}
+                                    {% for appointment in apps %}
+                                        <li><b>{{ appointment.student_name }}</b>
+                                            {% for test in appointment.tests.all %}
+                                                {{ test.name }}
+                                            {% endfor %}
+
+                                            </li>
+                                    {% endfor %}
                                 </ul>
                             {% endfor %}
                         </div>
