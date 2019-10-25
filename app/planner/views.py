@@ -10,7 +10,7 @@ from .forms import AppointmentForm
 from .models import Course, TestMoment, Appointment
 
 
-def index(request):
+def index(request) -> HttpResponse:
     return render(request, 'planner/index.html')
 
 
@@ -81,7 +81,7 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
 
     return render(request, 'planner/times.html', context=context)
 
-def done(request, *,course, app, tm):
+def done(request: HttpRequest, *,course: Course, app: Appointment, tm: TestMoment) -> HttpResponse:
     context = {
         'app': app,
         'course': course,
@@ -89,9 +89,9 @@ def done(request, *,course, app, tm):
     }
     return render(request, 'planner/done.html', context=context)
 
-def send_confirm_email(*, course, appointment, test_moment):
+
+def send_confirm_email(*, course: Course, appointment: Appointment, test_moment: TestMoment):
     send_mail(subject="",
               message="",
               from_email= settings.EMAIL_FROM,
               recipient_list=[appointment.email])
-    pass

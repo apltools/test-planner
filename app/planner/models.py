@@ -1,16 +1,16 @@
 import datetime as dt
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, DefaultDict, ItemsView
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.translation import gettext as _
-import datetime as dt
-
 
 class User(AbstractUser):
     pass
 
+AppointmentList = ItemsView[dt.time, List['Appointment']]
 
 class Course(models.Model):
     name = models.fields.CharField(max_length=64)
@@ -19,7 +19,7 @@ class Course(models.Model):
     def __str__(self):
         return self.short_name
 
-    def tests_this_week(self):
+    def tests_this_week(self) -> QuerySet:
         today = dt.date.today()
         next_week = today + dt.timedelta(days=7)
 
@@ -51,13 +51,14 @@ class TestMoment(models.Model):
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
 
-    def appointments_for_moment(self) -> Dict[dt.time, List['Appointment']]:
-        apps_time = defaultdict(list)
+    def appointments_for_moment(self) -> ItemsView[dt.time, List['Appointment']]:
+        apps_time: DefaultDict[dt.time, List['Appointment']] = defaultdict(list)
         appointments = Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
+
         for appointment in appointments:
             apps_time[appointment.start_time].append(appointment)
 
-        return apps_time
+        return apps_time.items()
 
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
@@ -113,7 +114,7 @@ class CourseMoment(models.Model):
 class Test(models.Model):
     name = models.fields.CharField(max_length=32)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     class Meta:
@@ -136,7 +137,7 @@ class Appointment(models.Model):
     def end_time(self) -> dt.time:
         return add_time(self.start_time, self.duration)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.student_name} om {self.start_time} op {self.date}'
 
     class Meta:
