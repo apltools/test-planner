@@ -3,30 +3,31 @@
 {% block title %}
     {{ course.name }} - Kies een datum
 {% endblock %}
+
 {% block nav-title %}
     {{ course.name }}
 {% endblock %}
 
 {% block main %}
-        <h3>{{ course.name }}</h3>
-        <div class="row">
-            <div class="col-12 col-md-6">
-                <p>Kies een datum om een toetsje in te plannen.</p>
-            </div>
-            <div class="col-12 col-md-6">
-                <h4 >Kies een datum</h4>
-                {% if test_moments %}
-                    <div class="btn-group-vertical" role="group">
-                        {% for test_moment in test_moments %}
-                            {% url 'choose_time' course_name=course.short_name date=test_moment.date|slugify as date_url %}
-                            <a class="btn btn-outline-primary" href="{{ date_url }}">{{ test_moment.date }}
-                                tussen {{ test_moment.start_time }}
-                                en {{ test_moment.end_time }}</a>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    Op dit moment zijn er geen mogelijkheden om een toetsje in te plannen.
-                {% endif %}
-            </div>
+    <h3>{{ course.name }}</h3>
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <p>Kies een datum om een toetsje in te plannen.</p>
         </div>
+        <div class="col-12 col-md-6">
+            <h4>Kies een datum</h4>
+            {% if test_moments %}
+                <div class="btn-group-vertical" role="group">
+                    {% for test_moment in test_moments %}
+                        {% url 'choose_time' course_name=course.short_name date=test_moment.date|slugify as date_url %}
+                        <a class="btn btn-outline-primary" href="{{ date_url }}">{{ test_moment.date }}
+                            tussen {{ test_moment.start_time }}
+                            en {{ test_moment.end_time }}</a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                Op dit moment zijn er geen mogelijkheden om een toetsje in te plannen.
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

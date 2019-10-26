@@ -3,39 +3,41 @@
 {% block title %}
     {{ course.name }} - Kies een Tijd
 {% endblock %}
+
 {% block nav-title %}
     {{ course.name }}
 {% endblock %}
+
 {% block main %}
-        <form method="post">
-            <div class="row">
-                <div class="col-md-6">
-                    <h4>Plan een toetsje in voor {{ course.name }}</h4>
-                    <p><span class="far fa-calendar fa-fw"></span> {{ test_moment.date }}</p>
-                    <p><span class="far fa-clock fa-fw"></span> {{ test_moment.test_length }} minuten</p>
-                    <p><span class="fas fa-map-marker fa-fw"></span> {{ test_moment.location }}</p>
+    <form method="post">
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Plan een toetsje in voor {{ course.name }}</h4>
+                <p><span class="far fa-calendar fa-fw"></span> {{ test_moment.date }}</p>
+                <p><span class="far fa-clock fa-fw"></span> {{ test_moment.test_length }} minuten</p>
+                <p><span class="fas fa-map-marker fa-fw"></span> {{ test_moment.location }}</p>
 
-                    {% csrf_token %}
+                {% csrf_token %}
 
-                    {% for field in form %}
-                        {% if not field.is_hidden %}
-                            <div class="form-group">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field.errors }}
-                                {{ field }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {{ form.duration }}
-                </div>
+                {% for field in form %}
+                    {% if not field.is_hidden %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                {{ form.duration }}
+            </div>
 
-                <div class="col-md-6">
-                    <h4>Kies een tijd</h4>
-                    {{ form.start_time.errors }}
-                    <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
-                        {% for time_option in student_slots %}
-                            {% with show=time_option.available %}
-                                <label class="btn
+            <div class="col-md-6">
+                <h4>Kies een tijd</h4>
+                {{ form.start_time.errors }}
+                <div class="btn-group-vertical btn-group-toggle col-12" data-toggle="buttons">
+                    {% for time_option in student_slots %}
+                        {% with show=time_option.available %}
+                            <label class="btn
                                               btn-outline-{% if show %}primary{% else %}secondary{% endif %}
                                               btn-block
                                               {% if not show %}
@@ -44,30 +46,29 @@
                                                   active
                                               {% endif %}
                                 ">
-                                    <input type="radio"
-                                           name="start_time"
-                                           value="{{ time_option.time }}"
-                                           autocomplete="off"
-                                            {% if not show %}
-                                           disabled
-                                            {% elif form.cleaned_data.start_time == time_option.time %}
-                                           checked
-                                            {% endif %}
-                                    >
-                                    {% if not show %}<s>{% endif %}
-                                    {{ time_option.time }}
-                                    {% if not show %}</s>{% endif %}
+                                <input type="radio"
+                                       name="start_time"
+                                       value="{{ time_option.time }}"
+                                        {% if not show %}
+                                       disabled
+                                        {% elif form.cleaned_data.start_time == time_option.time %}
+                                       checked
+                                        {% endif %}
+                                >
+                                {% if not show %}<s>{% endif %}
+                                {{ time_option.time }}
+                                {% if not show %}</s>{% endif %}
 
-                                </label>
-                            {% endwith %}
-                        {% endfor %}
-                    </div>
-                    <br>
-
+                            </label>
+                        {% endwith %}
+                    {% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary m-3">Verstuur</button>
+                <br>
+
             </div>
-        </form>
+            <button type="submit" class="btn btn-primary m-3">Verstuur</button>
+        </div>
+    </form>
 {% endblock %}
 
 {% block script %}
