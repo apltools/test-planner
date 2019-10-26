@@ -1,10 +1,10 @@
 import datetime
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
-from django.core.mail import send_mail
-from django.conf import settings
 
 from .forms import AppointmentForm
 from .models import Course, TestMoment, Appointment
@@ -64,6 +64,7 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
                 raise Http404("Duplicate appointment on date is not allowed")
 
             app.tests.set(form.cleaned_data['tests'])
+            send_confirm_email(course=course, appointment=app, test_moment=test_moment)
             return done(request, course=course, app=app, tm=test_moment)
 
     else:
@@ -81,7 +82,8 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
 
     return render(request, 'planner/times.html', context=context)
 
-def done(request: HttpRequest, *,course: Course, app: Appointment, tm: TestMoment) -> HttpResponse:
+
+def done(request: HttpRequest, *, course: Course, app: Appointment, tm: TestMoment) -> HttpResponse:
     context = {
         'app': app,
         'course': course,
@@ -91,7 +93,7 @@ def done(request: HttpRequest, *,course: Course, app: Appointment, tm: TestMomen
 
 
 def send_confirm_email(*, course: Course, appointment: Appointment, test_moment: TestMoment):
-    send_mail(subject="",
-              message="",
-              from_email= settings.EMAIL_FROM,
+    send_mail(subject=f"Toetsje ingepland voor {course.name}",
+              message=f"Op {appointment.date} om {appointment.start_time} heb je een toetsje ingepland.\r\nHet maken van dit toetsje vind plaats in {test_moment.location}.",
+              from_email=settings.EMAIL_FROM,
               recipient_list=[appointment.email])

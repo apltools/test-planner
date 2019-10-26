@@ -7,10 +7,12 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 
+TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
+
+
 class User(AbstractUser):
     pass
 
-AppointmentList = ItemsView[dt.time, List['Appointment']]
 
 class Course(models.Model):
     name = models.fields.CharField(max_length=64)
