@@ -6,9 +6,15 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.translation import gettext as _
+from django.utils.crypto import get_random_string
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
+def add_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
+    return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()
+
+def get_cancel_secret(length: int=64) -> str:
+    return get_random_string(length=length)
 
 class User(AbstractUser):
     pass
@@ -132,6 +138,7 @@ class Appointment(models.Model):
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     duration = models.fields.IntegerField(verbose_name=_("Lengte"))
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_("Vak"))
+    cancel_secret = models.CharField(max_length=64, default=get_cancel_secret)
 
     tests = models.ManyToManyField(Test, verbose_name=_("Toetsjes"))
 
@@ -146,7 +153,3 @@ class Appointment(models.Model):
         unique_together = ('student_nr', 'date')
         verbose_name = _("Afspraak")
         verbose_name_plural = _("Afspraken")
-
-
-def add_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
-    return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()

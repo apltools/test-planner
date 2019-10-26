@@ -105,8 +105,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Email config
 
-EMAIL_FROM = os.environ.get('EMAIL_FROM', 'tests@localhost')
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_FROM = os.environ.get('EMAIL_FROM', '')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '25'))
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')

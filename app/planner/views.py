@@ -93,6 +93,8 @@ def done(request: HttpRequest, *, course: Course, app: Appointment, tm: TestMome
 
 
 def send_confirm_email(*, course: Course, appointment: Appointment, test_moment: TestMoment):
+    if settings.EMAIL_HOST:
+        return
     send_mail(subject=f"Toetsje ingepland voor {course.name}",
               message=f"Op {appointment.date} om {appointment.start_time} heb je een toetsje ingepland.\r\nHet maken van dit toetsje vind plaats in {test_moment.location}.",
               from_email=settings.EMAIL_FROM,
