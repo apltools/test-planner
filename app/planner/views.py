@@ -130,7 +130,7 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
               recipient_list=[appointment.email])
 
 
-def cancel_appointment(request: HttpRequest, course_name: str, secret: str):
+def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> HttpResponse:
     try:
         course = Course.objects.get(short_name__exact=course_name)
     except Course.DoesNotExist:
@@ -141,3 +141,4 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str):
         return render(request, 'planner/error.html',
                       {'error_message': 'Ongeldige link',
                        'course': course})
+    return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
