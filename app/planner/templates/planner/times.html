@@ -38,13 +38,13 @@
                     {% for time_option in student_slots %}
                         {% with show=time_option.available %}
                             <label class="btn
-                                              btn-outline-{% if show %}primary{% else %}secondary{% endif %}
-                                              btn-block
-                                              {% if not show %}
-                                                  disabled
-                                              {% elif form.cleaned_data.start_time == time_option.time %}
-                                                  active
-                                              {% endif %}
+                                          btn-outline-primary
+                                          btn-block
+                                          {% if not show %}
+                                              disabled
+                                          {% elif form.cleaned_data.start_time == time_option.time %}
+                                              active
+                                          {% endif %}
                                 ">
                                 <input type="radio"
                                        name="start_time"
@@ -55,16 +55,14 @@
                                        checked
                                         {% endif %}
                                 >
-                                {% if not show %}<s>{% endif %}
+                                {% if not show %}<s class="text-secondary">{% endif %}
                                 {{ time_option.time }}
                                 {% if not show %}</s>{% endif %}
-
                             </label>
                         {% endwith %}
                     {% endfor %}
                 </div>
                 <br>
-
             </div>
             <button type="submit" class="btn btn-primary m-3">Verstuur</button>
         </div>

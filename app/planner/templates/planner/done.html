@@ -14,5 +14,5 @@
             <li>{{ test.name }}</li>
         {% endfor %}
     </ul>
-    <a class="btn btn-outline-danger" href="#">Annuleren</a>
+    <a class="btn btn-outline-danger" href="{% url 'cancel' course.short_name app.cancel_secret %}">Annuleren</a>
 {% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'planner/base.html' %}
+
+{% block title %}
+    {% if course %}{{ course.name }}{% else %}Toets Planner{% endif %}
+{% endblock %}
+
+{% block nav-title %}
+    {% if course %}{{ course.name }}{% else %}Toets Planner{% endif %}
+{% endblock %}
+
+{% block main %}
+    <h4>{{ error_message }}</h4>
+{% endblock %}
+
+
