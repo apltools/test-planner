@@ -1,5 +1,6 @@
 import datetime as dt
 from collections import defaultdict
+from uuid import UUID
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -42,7 +43,7 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
     return render(request, 'planner/dates.html', context=context)
 
 
-def choose_time(request: HttpRequest, course_name: str, date: str, nr: int) -> HttpResponse:
+def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpResponse:
     """View for choosing a time."""
     print(request.path)
     # Validate course
@@ -51,13 +52,10 @@ def choose_time(request: HttpRequest, course_name: str, date: str, nr: int) -> H
     except Course.DoesNotExist:
         raise Http404('Invalid Course')
 
-    # Validate date
     try:
-        date_obj = dt.date.fromisoformat(date)
-        test_moments = TestMoment.objects.filter(date__exact=date_obj, courses__exact=course).order_by('start_time')
-        test_moment = test_moments[nr]
+        test_moment = TestMoment.objects.get(uuid__exact=uuid, courses__exact=course)
     except (TestMoment.DoesNotExist, ValueError):
-        raise Http404('Invalid date')
+        raise Http404('Invalid uuid')
 
     # Validate of date isn't in the future.
     if test_moment.date <= dt.date.today():

@@ -20,7 +20,7 @@
                 <div class="btn-group-vertical" role="group">
                     {% for data, moments in moments_per_date %}
                         {% for moment in moments %}
-                            {% url 'choose_time' course_name=course.short_name nr=forloop.counter0 date=moment.date as date_url %}
+                            {% url 'choose_time' course_name=course.short_name uuid=moment.uuid as date_url %}
                             <a class="btn btn-outline-primary" href="{{ date_url }}">{{ moment.date }}
                                 tussen {{ moment.start_time }}
                                 en {{ moment.end_time }}</a>

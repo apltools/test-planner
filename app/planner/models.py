@@ -1,4 +1,6 @@
 import datetime as dt
+
+from uuid import uuid4
 from collections import defaultdict
 from typing import List, DefaultDict, ItemsView
 
@@ -58,6 +60,7 @@ class TestMoment(models.Model):
 
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
+    uuid = models.fields.UUIDField(default=uuid4)
 
     def appointments_for_moment(self) -> ItemsView[dt.time, List['Appointment']]:
         apps_time: DefaultDict[dt.time, List['Appointment']] = defaultdict(list)
