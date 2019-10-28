@@ -1,4 +1,5 @@
 import datetime as dt
+from collections import defaultdict
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -23,20 +24,27 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
         raise Http404('Invalid course name')
 
     test_moments = course.tests_this_week()
-    dates = test_moments.values_list('date', flat=True)
+
+    moments_per_date = defaultdict(list)
+
+    for moment in test_moments:
+        moments_per_date[moment.date].append(moment)
+
+    for date in moments_per_date.values():
+        date.sort(key=lambda moment: moment.start_time)
+    # dates = test_moments.values_list('date', flat=False)
 
     context = {
-        'test_moments': test_moments,
-        'dates': dates,
-        'course': course
+        'moments_per_date': moments_per_date.items(),
+        'course': course,
     }
 
     return render(request, 'planner/dates.html', context=context)
 
 
-def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpResponse:
+def choose_time(request: HttpRequest, course_name: str, date: str, nr: int) -> HttpResponse:
     """View for choosing a time."""
-
+    print(request.path)
     # Validate course
     try:
         course = Course.objects.get(short_name=course_name)
@@ -46,7 +54,8 @@ def choose_time(request: HttpRequest, course_name: str, date: str) -> HttpRespon
     # Validate date
     try:
         date_obj = dt.date.fromisoformat(date)
-        test_moment = TestMoment.objects.get(date=date_obj)
+        test_moments = TestMoment.objects.filter(date__exact=date_obj, courses__exact=course).order_by('start_time')
+        test_moment = test_moments[nr]
     except (TestMoment.DoesNotExist, ValueError):
         raise Http404('Invalid date')
 
@@ -118,8 +127,8 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
         reverse("cancel", kwargs={"course_name": course.short_name, "secret": appointment.cancel_secret}))
 
     message = f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
-              f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vind plaats in {test_moment.location}.\r\n' \
-              f'Wil de de afspraak anuleren, dat kan via deze link {url}'
+              f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {test_moment.location}.\r\n' \
+              f'Wil je de afspraak anuleren, dat kan via deze link {url}'
 
     if not settings.EMAIL_HOST:
         print(message)
@@ -131,6 +140,7 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
 
 
 def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> HttpResponse:
+    # TODO ADD CONFIRM
     try:
         course = Course.objects.get(short_name__exact=course_name)
     except Course.DoesNotExist:
