@@ -76,7 +76,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
             app.student_name = form.cleaned_data['student_name']
             app.student_nr = form.cleaned_data['student_nr']
             app.email = form.cleaned_data['email']
-            app.date = date_obj
+            app.date = test_moment.date
             app.course = course
             app.start_time = form.cleaned_data["start_time"]
             app.duration = test_moment.test_length
