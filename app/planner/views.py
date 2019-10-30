@@ -81,7 +81,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
             app.start_time = form.cleaned_data["start_time"]
             app.duration = test_moment.test_length
 
-            # Save can go wrong is student had a appoitment on this date
+            # Save can go wrong is student had a appointment on this date
             try:
                 app.save()
             except IntegrityError:

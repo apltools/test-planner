@@ -9,7 +9,7 @@
                     <a class="nav-link active" id="home-tab" role="tab" href="#home" data-toggle="pill">Home</a>
                     {% for moment, _ in moment_data %}
                         <a class="nav-link" id="date-{{ moment.id | slugify }}-tab" role="tab"
-                           href="#date-{{ moment.id | slugify }}" data-toggle="pill">{{ moment.date }}</a>
+                           href="#date-{{ moment.id | slugify }}" data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
                     {% endfor %}
                 </div>
             </div>

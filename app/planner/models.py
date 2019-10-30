@@ -64,7 +64,7 @@ class TestMoment(models.Model):
 
     def appointments_for_moment(self) -> ItemsView[dt.time, List['Appointment']]:
         apps_time: DefaultDict[dt.time, List['Appointment']] = defaultdict(list)
-        appointments = Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time))
+        appointments = Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time)).order_by('start_time')
 
         for appointment in appointments:
             apps_time[appointment.start_time].append(appointment)
