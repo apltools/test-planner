@@ -1,0 +1,18 @@
+{% extends 'planner/base.html' %}
+
+{% block title %}
+{{ course.name }}
+{% endblock %}
+
+{% block nav-title %}
+{{ course.name }}
+{% endblock %}
+
+{% block main %}
+    <h3>Weet je zeker dat je de afspraak wil annuleren?</h3>
+    <p>Nadat je de afspraak hebt geannuleerd, kan je een nieuwe afspraak maken op deze dag.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Ja, annuleer mijn afpraak</button>
+    </form>
+{% endblock %}

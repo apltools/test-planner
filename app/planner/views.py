@@ -138,15 +138,20 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
 
 
 def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> HttpResponse:
-    # TODO ADD CONFIRM
     try:
         course = Course.objects.get(short_name__exact=course_name)
     except Course.DoesNotExist:
         raise Http404("Invalid Course")
-    try:
-        Appointment.objects.get(cancel_secret__exact=secret, course__exact=course).delete()
-    except Appointment.DoesNotExist:
-        return render(request, 'planner/error.html',
-                      {'error_message': 'Ongeldige link',
-                       'course': course})
-    return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
+
+    if request.method == "POST":
+
+        try:
+            Appointment.objects.get(cancel_secret__exact=secret, course__exact=course).delete()
+        except Appointment.DoesNotExist:
+            return render(request, 'planner/error.html',
+                          {'error_message': 'Ongeldige link',
+                           'course': course})
+        return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
+
+    return render(request, 'planner/cancel.html', {'course': course})
+
