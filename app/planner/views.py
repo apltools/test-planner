@@ -33,7 +33,6 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
 
     for date in moments_per_date.values():
         date.sort(key=lambda moment: moment.start_time)
-    # dates = test_moments.values_list('date', flat=False)
 
     context = {
         'moments_per_date': moments_per_date.items(),
@@ -57,8 +56,8 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
     except (TestMoment.DoesNotExist, ValueError):
         raise Http404('Invalid uuid')
 
-    # Validate of date isn't in the future.
-    if test_moment.date <= dt.date.today():
+    # Validate of date isn't in the past.
+    if test_moment.date < dt.date.today():
         return render(request, 'planner/error.html',
                       {'error_message': 'Deze datum is inmiddels verlopen.',
                        'course': course, })

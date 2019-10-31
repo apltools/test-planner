@@ -33,7 +33,7 @@ class Course(models.Model):
         today = dt.date.today()
         next_week = today + dt.timedelta(days=7)
 
-        return self.test_moments.filter(date__gt=today, date__lte=next_week, hidden_from_total=False).order_by('date')
+        return self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by('date')
 
     class Meta:
         verbose_name = _("Vak")
