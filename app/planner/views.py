@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from .forms import AppointmentForm
 from .models import Appointment, Course, TestMoment
-
+import django.utils.timezone as tz
 
 def index(request) -> HttpResponse:
     return render(request, 'planner/index.html')
@@ -57,7 +57,8 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
         raise Http404('Invalid uuid')
 
     # Validate of date isn't in the past.
-    if test_moment.date < dt.date.today():
+    # TODO Validate time is not in the past
+    if test_moment.date < tz.localdate():
         return render(request, 'planner/error.html',
                       {'error_message': 'Deze datum is inmiddels verlopen.',
                        'course': course, })
@@ -66,10 +67,20 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
         form = AppointmentForm(request.POST)
 
         if form.is_valid():
-            if not test_moment.time_available(form.cleaned_data['start_time'], course):
+            # Check if time is full
+            if not test_moment.spots_available(form.cleaned_data['start_time'], course):
                 return render(request, 'planner/error.html',
                               {'error_message': 'Waarschijnlijk was iemand je voor, dit tijdstip is helaas al vol.',
                                'course': course, })
+
+            # Check if time is in the past
+            today = tz.localdate()
+            if test_moment.date == today:
+                now = tz.localtime().time()
+                if form.cleaned_data['start_time'] <= now:
+                    return render(request, 'planner/error.html',
+                                  {'error_message': 'Deze tijd mag niet meer gekozen worden.',
+                                   'course': course})
 
             app = Appointment()
             app.student_name = form.cleaned_data['student_name']

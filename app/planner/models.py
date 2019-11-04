@@ -8,14 +8,15 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils.crypto import get_random_string
-from django.utils import timezone
+import django.utils.timezone as tz
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
-def add_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
+def add_time(time: dt.time, *,hours: int = 0, minutes: int = 0) -> dt.time:
+
     return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()
 
-def substract_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
+def substract_time(time: dt.time, *,hours: int = 0, minutes: int = 0) -> dt.time:
     return (dt.datetime.combine(dt.date.today(), time) - dt.timedelta(hours=hours, minutes=minutes)).time()
 
 def get_cancel_secret(length: int=64) -> str:
@@ -33,12 +34,12 @@ class Course(models.Model):
         return self.short_name
 
     def tests_this_week(self) -> List['TestMoment']:
-        today = dt.date.today()
+        today = tz.localdate()
         next_week = today + dt.timedelta(days=7)
 
         test_momenets =  self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by('date')
 
-        return [moment for moment in test_momenets if moment.date > today or moment.last_slot.time > timezone.localtime().time()]
+        return [moment for moment in test_momenets if moment.date > today or moment.last_slot.time > tz.localtime().time()]
 
     class Meta:
         verbose_name = _("Vak")
@@ -56,7 +57,7 @@ class TimeOption:
 
 
 class TestMoment(models.Model):
-    location = models.fields.CharField(max_length=16, verbose_name=_("Locatie"))  # Own model with capacity?
+    location = models.fields.CharField(max_length=16, verbose_name=_("Locatie"))
     date = models.fields.DateField(verbose_name=_("Datum"))
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     end_time = models.fields.TimeField(verbose_name=_("Eindtijd"))
@@ -91,14 +92,13 @@ class TestMoment(models.Model):
     @property
     def student_slots(self) -> List[TimeOption]:
         """List of possible time slots."""
-        cur_time = dt.datetime.combine(dt.date.today(), self.start_time)
-        end_time = dt.datetime.combine(dt.date.today(), self.end_time)
+        cur_time = self.start_time
 
         slots: List[TimeOption] = []
 
-        while cur_time + self.slot_delta <= end_time:
-            slots.append(TimeOption(cur_time.time()))
-            cur_time = cur_time + self.slot_delta
+        while add_time(cur_time, minutes=self.test_length) <= self.end_time:
+            slots.append(TimeOption(cur_time))
+            cur_time = add_time(cur_time, minutes=self.test_length)
 
         return slots
 
@@ -106,11 +106,19 @@ class TestMoment(models.Model):
         slots = self.student_slots
 
         for slot in slots:
-            slot.available = self.time_available(slot.time, course)
+            slot.available = self.spots_available(slot.time, course)
+
+        now = tz.localtime().time()
+
+        # If slot is today, check if this slot hasn't started yet
+        if self.date == tz.localdate():
+            for slot in slots:
+                if slot.time <= now:
+                    slot.available = False
 
         return slots
 
-    def time_available(self, time: dt.time, course: Course) -> bool:
+    def spots_available(self, time: dt.time, course: Course) -> bool:
         appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(
             course=course).count()
         return appointments < self.coursemoment_set.get(course=course).places
