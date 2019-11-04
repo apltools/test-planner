@@ -6,14 +6,17 @@ from typing import List, DefaultDict, ItemsView
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 from django.utils.crypto import get_random_string
+from django.utils import timezone
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
 def add_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
     return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()
+
+def substract_time(time: dt.time, hours: int = 0, minutes: int = 0) -> dt.time:
+    return (dt.datetime.combine(dt.date.today(), time) - dt.timedelta(hours=hours, minutes=minutes)).time()
 
 def get_cancel_secret(length: int=64) -> str:
     return get_random_string(length=length)
@@ -29,11 +32,13 @@ class Course(models.Model):
     def __str__(self):
         return self.short_name
 
-    def tests_this_week(self) -> QuerySet:
+    def tests_this_week(self) -> List['TestMoment']:
         today = dt.date.today()
         next_week = today + dt.timedelta(days=7)
 
-        return self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by('date')
+        test_momenets =  self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by('date')
+
+        return [moment for moment in test_momenets if moment.date > today or moment.last_slot.time > timezone.localtime().time()]
 
     class Meta:
         verbose_name = _("Vak")
@@ -78,6 +83,10 @@ class TestMoment(models.Model):
     def slot_delta(self) -> dt.timedelta:
         """Slot length as a timedelta"""
         return dt.timedelta(minutes=self.test_length)
+
+    @property
+    def last_slot(self) -> TimeOption:
+        return self.student_slots[-1]
 
     @property
     def student_slots(self) -> List[TimeOption]:
