@@ -1,7 +1,7 @@
-import datetime as dt
 from collections import defaultdict
 from uuid import UUID
 
+import django.utils.timezone as tz
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from .forms import AppointmentForm
 from .models import Appointment, Course, TestMoment
-import django.utils.timezone as tz
+
 
 def index(request) -> HttpResponse:
     return render(request, 'planner/index.html')
@@ -177,4 +177,3 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> H
         return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
 
     return render(request, 'planner/cancel.html', {'course': course})
-

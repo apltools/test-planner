@@ -1,26 +1,28 @@
 import datetime as dt
-
-from uuid import uuid4
 from collections import defaultdict
-from typing import List, DefaultDict, ItemsView
+from typing import DefaultDict, ItemsView, List
+from uuid import uuid4
 
+import django.utils.timezone as tz
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.translation import gettext as _
 from django.utils.crypto import get_random_string
-import django.utils.timezone as tz
+from django.utils.translation import gettext as _
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
-def add_time(time: dt.time, *,hours: int = 0, minutes: int = 0) -> dt.time:
 
+def add_time(time: dt.time, *, hours: int = 0, minutes: int = 0) -> dt.time:
     return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()
 
-def substract_time(time: dt.time, *,hours: int = 0, minutes: int = 0) -> dt.time:
+
+def subtract_time(time: dt.time, *, hours: int = 0, minutes: int = 0) -> dt.time:
     return (dt.datetime.combine(dt.date.today(), time) - dt.timedelta(hours=hours, minutes=minutes)).time()
 
-def get_cancel_secret(length: int=64) -> str:
+
+def get_cancel_secret(length: int = 64) -> str:
     return get_random_string(length=length)
+
 
 class User(AbstractUser):
     pass
@@ -34,12 +36,15 @@ class Course(models.Model):
         return self.short_name
 
     def tests_this_week(self) -> List['TestMoment']:
+        """Returns TestMoments in the coming week, including today if there are slots in the future."""
         today = tz.localdate()
-        next_week = today + dt.timedelta(days=7)
+        next_week = today + dt.timedelta(weeks=1)
 
-        test_momenets =  self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by('date')
+        test_moments = self.test_moments.filter(date__gte=today, date__lte=next_week, hidden_from_total=False).order_by(
+            'date')
 
-        return [moment for moment in test_momenets if moment.date > today or moment.last_slot.time > tz.localtime().time()]
+        return [moment for moment in test_moments if
+                moment.date > today or moment.last_slot.time > tz.localtime().time()]
 
     class Meta:
         verbose_name = _("Vak")
@@ -47,7 +52,6 @@ class Course(models.Model):
 
 
 class TimeOption:
-
     def __init__(self, time: dt.time, available: bool = True):
         self.time: dt.time = time
         self.available: bool = available
@@ -70,7 +74,9 @@ class TestMoment(models.Model):
 
     def appointments_for_moment(self) -> ItemsView[dt.time, List['Appointment']]:
         apps_time: DefaultDict[dt.time, List['Appointment']] = defaultdict(list)
-        appointments = Appointment.objects.filter(date=self.date, start_time__range=(self.start_time, self.end_time)).order_by('start_time')
+        appointments = Appointment.objects.filter(date=self.date,
+                                                  start_time__range=(self.start_time, self.end_time)).order_by(
+            'start_time')
 
         for appointment in appointments:
             apps_time[appointment.start_time].append(appointment)
