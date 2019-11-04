@@ -57,7 +57,6 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
         raise Http404('Invalid uuid')
 
     # Validate of date isn't in the past.
-    # TODO Validate time is not in the past
     if test_moment.date < tz.localdate():
         return render(request, 'planner/error.html',
                       {'error_message': 'Deze datum is inmiddels verlopen.',
@@ -153,14 +152,28 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> H
     except Course.DoesNotExist:
         raise Http404("Invalid Course")
 
-    if request.method == "POST":
+    try:
+        appointment = Appointment.objects.get(cancel_secret__exact=secret, course__exact=course)
+    except Appointment.DoesNotExist:
+        return render(request, 'planner/error.html',
+                      {'error_message': 'Ongeldige link',
+                       'course': course})
 
-        try:
-            Appointment.objects.get(cancel_secret__exact=secret, course__exact=course).delete()
-        except Appointment.DoesNotExist:
+    if request.method == "POST":
+        now = tz.localtime().time()
+        today = tz.localdate()
+
+        if appointment.date < today:
             return render(request, 'planner/error.html',
-                          {'error_message': 'Ongeldige link',
+                          {'error_message': 'Dit toetsje is in het verleden',
                            'course': course})
+        elif appointment.date == today:
+            if appointment.start_time <= now:
+                return render(request, 'planner/error.html',
+                              {'error_message': 'Dit toetsje is al gestart of is in het verleden',
+                               'course': course})
+        appointment.delete()
+
         return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
 
     return render(request, 'planner/cancel.html', {'course': course})

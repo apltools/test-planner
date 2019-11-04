@@ -164,7 +164,7 @@ class Appointment(models.Model):
 
     @property
     def end_time(self) -> dt.time:
-        return add_time(self.start_time, self.duration)
+        return add_time(self.start_time, minutes=self.duration)
 
     def __str__(self) -> str:
         return f'{self.student_name} om {self.start_time} op {self.date}'
