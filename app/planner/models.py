@@ -132,6 +132,7 @@ class TestMoment(models.Model):
     class Meta:
         verbose_name = _("Toetsmoment")
         verbose_name_plural = _("Toetsmomenten")
+        unique_together = ['start_time', 'end_time', 'location', 'date']
 
 
 class CourseMoment(models.Model):
