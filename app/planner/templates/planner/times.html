@@ -17,9 +17,10 @@
                 <p><span class="far fa-calendar fa-fw"></span> {{ test_moment.date }}</p>
                 <p><span class="far fa-clock fa-fw"></span> {{ test_moment.test_length }} minuten</p>
                 <p><span class="fas fa-map-marker fa-fw"></span> {{ test_moment.location }}</p>
-
+                {% if course_moment.description != "" %}
+                    <p>{{ course_moment.description }}</p>
+                {% endif %}
                 {% csrf_token %}
-
                 {% for field in form %}
                     {% if not field.is_hidden %}
                         <div class="form-group">
