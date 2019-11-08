@@ -44,7 +44,7 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
 
 def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpResponse:
     """View for choosing a time."""
-    print(request.path)
+
     # Validate course
     try:
         course = Course.objects.get(short_name=course_name)
@@ -107,12 +107,14 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
     else:
         form = AppointmentForm()
 
+    course_moment = test_moment.coursemoment_set.get(course__exact=course)
     # Insert the allowed tests for the course into the form as options.
-    form.fields['tests'].queryset = test_moment.coursemoment_set.get(course__exact=course).allowed_tests.all()
+    form.fields['tests'].queryset = course_moment.allowed_tests.all()
 
     context = {
         'course': course,
         'test_moment': test_moment,
+        'course_moment': course_moment,
         'form': form,
         'student_slots': test_moment.student_slots_for_course(course),
     }
