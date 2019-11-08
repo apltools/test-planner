@@ -46,3 +46,4 @@ volumes:
   static_files:
   letsencrypt:
   www-certbot:
+restart: unless-stopped
