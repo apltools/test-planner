@@ -29,6 +29,7 @@
         function removeTrailingSlash(str) {
             return str.replace(/\/$/, "");
         }
+
         window.history.replaceState(null, null, removeTrailingSlash(location.pathname) + location.hash);
 
         $(function () {
