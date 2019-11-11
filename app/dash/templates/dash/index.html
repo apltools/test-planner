@@ -19,32 +19,11 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" role="dialog"
-         aria-labelledby="cancelConfirmModallLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cancelConfirmModalLabel">Wil je deze afspraak annuleren?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Nee</button>
-                    <button type="button" class="btn btn-danger" id="cancelAppointmentButton">Ja</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'dash/cancelModal.html' %}
 {% endblock %}
 
 {% block script %}
     {% load static %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.4.2/handlebars.min.js"
-            integrity="sha256-oh7N5nthuhldTk8/34Za7FXv3BkeVN9vAnYk/pLfC78=" crossorigin="anonymous"></script>
     <script>
         Handlebars.registerHelper("join", function (context, block) {
             var delimiter = block.hash.delimiter || ", ";
@@ -55,8 +34,13 @@
             return str.replace(/\/$/, "");
         }
 
-        function resetCancelButton() {
-            var button = $('#cancelAppointmentButton');
+        function disableCancelConfirmButton(button) {
+            button.attr('disabled', true);
+            button.html("<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span>\n" +
+                "  <span class=\"sr-only\">Loading...</span>");
+        }
+
+        function resetCancelConfirmButton(button) {
             button.removeAttr('disabled');
             button.html('Ja');
         }
@@ -102,59 +86,60 @@
 
         $(function () {
             // Load appointment template
-            $.get('{% static 'dash/templates/appointments.hbs' %}', function (data) {
-                var template = Handlebars.compile(data);
+            $.get('{% static 'dash/templates/appointments.hbs' %}')
+                .done(function (data) {
+                    var template = Handlebars.compile(data);
 
-                // Bind on-click to menu pills
-                $('a[data-toggle="pill"]').on("shown.bs.tab", function () {
-                    location.hash = `date-${$(this).data('tm-id')}`;
+                    // Bind on-click to menu pills
+                    $('a[data-toggle="pill"]').on("shown.bs.tab", function () {
+                        location.hash = `date-${$(this).data('tm-id')}`;
 
-                    // Get appointments
-                    $.get(`/api/appointments/${$(this).data('tm-id')}`, function (data) {
-                        $('#student-list').html(template(data));
+                        // Get appointments
+                        $.getJSON(`/api/appointments/${$(this).data('tm-id')}`)
+                            .done(function (data) {
+                                $('#student-list').html(template(data));
 
-                        // Bind delete function to appointments
-                        $('.appointment-listing').on('click', function () {
-                            var li = $(this);
-                            $('#cancelAppointmentButton').data('app-id', li.data('app-id'));
+                                // Bind delete function to appointments
+                                $('.appointment-listing').click(function () {
+                                    var li = $(this);
+                                    $('#cancelAppointmentButton').data('app-id', li.data('app-id'));
 
-                            var cancel_vars = {
-                                time: li.parent().siblings().html(),
-                                name: li.find('.name').html()
-                            };
+                                    var cancel_vars = {
+                                        time: li.parent().siblings().html(),
+                                        name: li.find('.name').html()
+                                    };
 
-                            // Get template for modal-body
-                            $.get('{% static 'dash/templates/cancel.hbs' %}', data => {
-                                var del_template = Handlebars.compile(data);
-                                $('.modal-body').html(del_template(cancel_vars));
+                                    // Get template for modal-body
+                                    $.get('{% static 'dash/templates/cancel.hbs' %}')
+                                        .done(function (data) {
+                                            var del_template = Handlebars.compile(data);
+                                            $('.modal-body').html(del_template(cancel_vars));
+                                        });
+
+                                    $('#cancelConfirmModal').modal('show');
+                                });
                             });
-
-                            $('#cancelConfirmModal').modal('show');
-                        });
                     });
+                    if (location.hash) {
+                        $(`a[href="${location.hash}"]`).tab('show')
+                    } else {
+                        $('#dateTabList a:first-child').tab('show')
+                    }
                 });
 
-                $('#cancelAppointmentButton').on('click', function () {
-                    var button = $(this);
-                    button.attr('disabled', '');
-                    button.html("<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span>\n" +
-                        "  <span class=\"sr-only\">Loading...</span>");
-                    var app_id = button.data('app-id');
+            $('#cancelAppointmentButton').click(function () {
+                var button = $(this);
+                disableCancelConfirmButton(button);
+                var app_id = button.data('app-id');
 
-                    $.post('{% url 'cancel_appointment' %}', {app_id: button.data('app-id')}, function (data) {
+                $.post('{% url 'cancel_appointment' %}', {app_id: button.data('app-id')})
+                    .done(function (data) {
                         if (data) {
                             $(`li[data-app-id=${app_id}]`).remove();
                         }
                         $('#cancelConfirmModal').modal('hide');
-                        resetCancelButton();
+                        resetCancelConfirmButton(button);
                     });
-                });
-
-                if (location.hash) {
-                    $(`a[href="${location.hash}"]`).tab('show')
-                } else {
-                    $('#dateTabList a:first-child').tab('show')
-                }
             });
         });
     </script>
