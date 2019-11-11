@@ -52,8 +52,9 @@ def appointments(request: HttpRequest, test_moment_id) -> JsonResponse:
 @staff_member_required_json
 def cancel_appointment(request: HttpRequest) -> JsonResponse:
     try:
-        app_id = int(request.POST.get('app_id'))
+        app_id = int(request.POST.get('appId'))
         Appointment.objects.get(id__exact=app_id).delete()
-    except:
+    except Exception as e:
+        print(e)
         return JsonResponse(False, safe=False)
     return JsonResponse(True, safe=False)

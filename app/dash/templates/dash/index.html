@@ -120,8 +120,10 @@
                                 });
                             });
                     });
-                    if (location.hash) {
-                        $(`a[href="${location.hash}"]`).tab('show')
+
+                    var hashTab = $(`a[href="${location.hash}"]`);
+                    if (hashTab.length) {
+                        hashTab.tab('show')
                     } else {
                         $('#dateTabList a:first-child').tab('show')
                     }
@@ -130,12 +132,12 @@
             $('#cancelAppointmentButton').click(function () {
                 var button = $(this);
                 disableCancelConfirmButton(button);
-                var app_id = button.data('app-id');
+                var appId = button.data('app-id');
 
-                $.post('{% url 'cancel_appointment' %}', {app_id: button.data('app-id')})
+                $.post('{% url 'cancel_appointment' %}', {appId: button.data('app-id')})
                     .done(function (data) {
                         if (data) {
-                            $(`li[data-app-id=${app_id}]`).remove();
+                            $(`li[data-app-id=${appId}]`).remove();
                         }
                         $('#cancelConfirmModal').modal('hide');
                         resetCancelConfirmButton(button);
