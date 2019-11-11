@@ -7,8 +7,8 @@
         <div class="col-md-2 d-print-none">
             <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
                 {% for moment in test_moments %}
-                    <a class="nav-link" id="date-{{ moment.id | slugify }}-tab" role="tab"
-                       href="#date-{{ moment.id | slugify }}" data-tm-id="{{ moment.id }}"
+                    <a class="nav-link" id="date-{{ moment.id }}-tab" role="tab"
+                       href="#date-{{ moment.id }}" data-tm-id="{{ moment.id }}"
                        data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
                 {% endfor %}
             </div>
@@ -19,6 +19,26 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" role="dialog"
+         aria-labelledby="cancelConfirmModallLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelConfirmModalLabel">Wil je deze afspraak annuleren?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Nee</button>
+                    <button type="button" class="btn btn-danger" id="cancelAppointmentButton">Ja</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block script %}
@@ -26,26 +46,107 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.4.2/handlebars.min.js"
             integrity="sha256-oh7N5nthuhldTk8/34Za7FXv3BkeVN9vAnYk/pLfC78=" crossorigin="anonymous"></script>
     <script>
+        Handlebars.registerHelper("join", function (context, block) {
+            var delimiter = block.hash.delimiter || ", ";
+            return context.join(delimiter);
+        });
+
         function removeTrailingSlash(str) {
             return str.replace(/\/$/, "");
         }
 
+        function resetCancelButton() {
+            var button = $('#cancelAppointmentButton');
+            button.removeAttr('disabled');
+            button.html('Ja');
+        }
+
+        function studentListWaitingSpinner() {
+            $('#student-list').html("<div class=\"d-flex justify-content-center\">\n" +
+                "  <div class=\"spinner-border\" role=\"status\">\n" +
+                "    <span class=\"sr-only\">Loading...</span>\n" +
+                "  </div>\n" +
+                "</div>");
+        }
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                }
+            }
+        });
+
         window.history.replaceState(null, null, removeTrailingSlash(location.pathname) + location.hash);
 
         $(function () {
+            // Load appointment template
             $.get('{% static 'dash/templates/appointments.hbs' %}', function (data) {
                 var template = Handlebars.compile(data);
 
+                // Bind on-click to menu pills
                 $('a[data-toggle="pill"]').on("shown.bs.tab", function () {
                     location.hash = `date-${$(this).data('tm-id')}`;
 
-                    document.getElementById('student-list').innerHTML = "<div class=\"d-flex justify-content-center\">\n" +
-                        "  <div class=\"spinner-border\" role=\"status\">\n" +
-                        "    <span class=\"sr-only\">Loading...</span>\n" +
-                        "  </div>\n" +
-                        "</div>";
+                    // Get appointments
                     $.get(`/api/appointments/${$(this).data('tm-id')}`, function (data) {
-                        document.getElementById('student-list').innerHTML = template(data);
+                        $('#student-list').html(template(data));
+
+                        // Bind delete function to appointments
+                        $('.appointment-listing').on('click', function () {
+                            var li = $(this);
+                            $('#cancelAppointmentButton').data('app-id', li.data('app-id'));
+
+                            var cancel_vars = {
+                                time: li.parent().siblings().html(),
+                                name: li.find('.name').html()
+                            };
+
+                            // Get template for modal-body
+                            $.get('{% static 'dash/templates/cancel.hbs' %}', data => {
+                                var del_template = Handlebars.compile(data);
+                                $('.modal-body').html(del_template(cancel_vars));
+                            });
+
+                            $('#cancelConfirmModal').modal('show');
+                        });
+                    });
+                });
+
+                $('#cancelAppointmentButton').on('click', function () {
+                    var button = $(this);
+                    button.attr('disabled', '');
+                    button.html("<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span>\n" +
+                        "  <span class=\"sr-only\">Loading...</span>");
+                    var app_id = button.data('app-id');
+
+                    $.post('{% url 'cancel_appointment' %}', {app_id: button.data('app-id')}, function (data) {
+                        if (data) {
+                            $(`li[data-app-id=${app_id}]`).remove();
+                        }
+                        $('#cancelConfirmModal').modal('hide');
+                        resetCancelButton();
                     });
                 });
 
@@ -55,7 +156,6 @@
                     $('#dateTabList a:first-child').tab('show')
                 }
             });
-
         });
     </script>
 {% endblock %}
