@@ -29,7 +29,7 @@ def index(request: HttpRequest) -> HttpResponse:
 @ensure_csrf_cookie
 @staff_member_required
 def history(request: HttpRequest) -> HttpResponse:
-    test_moments: List[TestMoment] = TestMoment.objects.filter(date__lt=tz.localdate()).order_by('date', 'start_time')
+    test_moments: List[TestMoment] = TestMoment.objects.filter(date__lt=tz.localdate()).order_by('-date', 'start_time')
     context = {'test_moments': test_moments,
                'nav_items': nav_items}
 
