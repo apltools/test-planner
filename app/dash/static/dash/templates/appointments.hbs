@@ -1,0 +1,13 @@
+{{!--<script id="appointments-template" type="text/x-handblebars-template">--}}
+    <h3>{{test_moment.date}} voor {{test_moment.courses}}</h3>
+        {{#each appointments}}
+        <p>{{ @key }}</p>
+        <ul>
+            {{#each this}}
+                <li><b>{{this.student_name}}</b> {{this.tests}}</li>
+            {{/each}}
+        </ul>
+        {{else}}
+        <p>Geen afspraken op deze datum</p>
+        {{/each}}
+{{!--</script>--}}

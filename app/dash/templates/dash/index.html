@@ -3,71 +3,58 @@
     Dashboard
 {% endblock %}
 {% block main %}
-        <div class="row">
-            <div class="col-md-2 d-print-none">
-                <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active" id="home-tab" role="tab" href="#home" data-toggle="pill">Home</a>
-                    {% for moment, _ in moment_data %}
-                        <a class="nav-link" id="date-{{ moment.id | slugify }}-tab" role="tab"
-                           href="#date-{{ moment.id | slugify }}" data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="col-md-10">
-                <div class="tab-content">
-                    <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home-tab">
-                        Kies een datum
-                    </div>
-                    {% for moment, apps_dict in moment_data %}
-                        <div class="tab-pane fade" id="date-{{ moment.id | slugify }}" role="tabpanel"
-                             aria-labelledby="date-{{ moment.id | slugify }}-tab">
-                            <h3>{{ moment.date }}</h3>
-                            {% for time, apps in apps_dict %}
-                                <p>{{ time }}</p>
-                                <ul>
-                                    {% for appointment in apps %}
-                                        <li><b>{{ appointment.student_name }}</b>
-                                            {% for test in appointment.tests.all %}
-                                                {{ test.name }}
-                                            {% endfor %}
-
-                                            </li>
-                                    {% endfor %}
-                                </ul>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                </div>
+    <div class="row">
+        <div class="col-md-2 d-print-none">
+            <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
+                {% for moment in test_moments %}
+                    <a class="nav-link" id="date-{{ moment.id | slugify }}-tab" role="tab"
+                       href="#date-{{ moment.id | slugify }}" data-tm-id="{{ moment.id }}"
+                       data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
+                {% endfor %}
             </div>
         </div>
+        <div class="col-md-10">
+            <div class="tab-content">
+                <div id="student-list"></div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block script %}
+    {% load static %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.4.2/handlebars.min.js"
+            integrity="sha256-oh7N5nthuhldTk8/34Za7FXv3BkeVN9vAnYk/pLfC78=" crossorigin="anonymous"></script>
     <script>
-        $(document).ready(() => {
-            let url = location.href.replace(/\/$/, "");
+        function removeTrailingSlash(str) {
+            return str.replace(/\/$/, "");
+        }
+        window.history.replaceState(null, null, removeTrailingSlash(location.pathname) + location.hash);
 
-            if (location.hash) {
-                const hash = url.split("#");
-                $('#dateTabList a[href="#' + hash[1] + '"]').tab("show");
-                url = location.href.replace(/\/#/, "#");
-                history.replaceState(null, null, url);
-                setTimeout(() => {
-                    $(window).scrollTop(0);
-                }, 400);
-            }
+        $(function () {
+            $.get('{% static 'dash/templates/appointments.hbs' %}', function (data) {
+                var template = Handlebars.compile(data);
 
-            $('a[data-toggle="pill"]').on("click", function () {
-                let newUrl;
-                const hash = $(this).attr("href");
-                if (hash === "#home") {
-                    newUrl = url.split("#")[0] + "/";
+                $('a[data-toggle="pill"]').on("shown.bs.tab", function () {
+                    location.hash = `date-${$(this).data('tm-id')}`;
+
+                    document.getElementById('student-list').innerHTML = "<div class=\"d-flex justify-content-center\">\n" +
+                        "  <div class=\"spinner-border\" role=\"status\">\n" +
+                        "    <span class=\"sr-only\">Loading...</span>\n" +
+                        "  </div>\n" +
+                        "</div>";
+                    $.get(`/api/appointments/${$(this).data('tm-id')}`, function (data) {
+                        document.getElementById('student-list').innerHTML = template(data);
+                    });
+                });
+
+                if (location.hash) {
+                    $(`a[href="${location.hash}"]`).tab('show')
                 } else {
-                    newUrl = url.split("#")[0] + hash;
+                    $('#dateTabList a:first-child').tab('show')
                 }
-                {#newUrl += "/";#}
-                history.replaceState(null, null, newUrl);
             });
+
         });
     </script>
 {% endblock %}

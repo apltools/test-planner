@@ -11,11 +11,7 @@ from planner.models import TestMoment, TimeAppointmentsTuple
 def index(request: HttpRequest) -> HttpResponse:
     test_moments: List[TestMoment] = TestMoment.objects.all().order_by('date', 'start_time')
 
-    moment_data: List[Tuple[TestMoment, TimeAppointmentsTuple]] = [(moment, moment.appointments_for_moment()) for moment
-                                                                   in test_moments]
-
-    context = {
-        'moment_data': moment_data
-    }
+    context = {'test_moments': test_moments}
 
     return render(request, 'dash/index.html', context=context)
+

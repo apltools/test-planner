@@ -72,19 +72,19 @@ class TestMoment(models.Model):
                                      verbose_name=_("Vakken"))
     uuid = models.fields.UUIDField(default=uuid4)
 
-    def appointments_for_moment(self) -> ItemsView[dt.time, List['Appointment']]:
-        apps_time: DefaultDict[dt.time, List['Appointment']] = defaultdict(list)
+    @property
+    def appointments_for_moment(self):
+        apps_time: DefaultDict[str, List['Appointment']] = defaultdict(list)
         appointments = Appointment.objects.filter(date=self.date,
                                                   start_time__range=(self.start_time, self.end_time)).order_by(
             'start_time')
-
         for appointment in appointments:
-            apps_time[appointment.start_time].append(appointment)
-
-        return apps_time.items()
+            apps_time[str(appointment.start_time)[:-3]].append(appointment)
+        return apps_time
 
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
+
 
     @property
     def slot_delta(self) -> dt.timedelta:
