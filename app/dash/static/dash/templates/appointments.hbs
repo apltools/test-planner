@@ -2,11 +2,17 @@
 <h5>{{join test_moment.courses}}</h5>
 {{#each appointments}}
     <div class="timeSlot">
-        <h6 class="time">{{@key}}</h6>
+        <h6 class="time">{{@key}} ({{this.length}})</h6>
         <ul class="fa-ul">
             {{#each this}}
-                <li class="appointment-listing" data-app-id="{{this.id}}"><span class="fa-li"><i class="far fa-square"></i></span><b class="name">{{this.student_name}}</b> ({{this.course}})
-                    {{join this.tests}}</li>
+                <li data-app-id="{{this.id}}">
+                    <span class="fa-li"><i class="far fa-square"></i></span>
+                    <b class="name">{{this.student_name}}</b> ({{this.course}}) {{join this.tests}}
+                    <a href="#" data-app-id="{{this.id}}"
+                          class="cancel-inline float-right badge badge-secondary d-print-none d-none d-md-block">
+                        annuleren
+                    </a>
+                </li>
             {{/each}}
         </ul>
     </div>

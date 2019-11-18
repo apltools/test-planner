@@ -114,22 +114,19 @@
                                 $('#student-list').html(template(data));
 
                                 // Bind delete function to appointments
-                                {#$('.appointment-listing').click(function () {#}
-                                {#    if ($(window).width() < 768) {#}
-                                {#        return#}
-                                {#    }#}
-                                {#    const li = $(this);#}
-                                {#    $('#cancelAppointmentButton').data('app-id', li.data('app-id'));#}
-                                {##}
-                                {#    var cancelVars = {#}
-                                {#        time: li.parent().siblings().html(),#}
-                                {#        name: li.find('.name').html()#}
-                                {#    };#}
-                                {##}
-                                {#    prepareModal(cancelVars);#}
-                                {##}
-                                {#    $('#cancelConfirmModal').modal('show');#}
-                                {#});#}
+                                $('.cancel-inline').click(function () {
+                                    const span = $(this);
+                                    $('#modalCancelButton').data('app-id', span.data('app-id'));
+
+                                    var cancelVars = {
+                                        time: span.parent().parent().siblings().html(),
+                                        name: span.parent().find('.name').html()
+                                    };
+
+                                    prepareModal(cancelVars);
+
+                                    $('#cancelConfirmModal').modal('show');
+                                });
                             });
                     });
 
@@ -141,9 +138,10 @@
                     }
                 });
 
-            $('#cancelAppointmentButton').click(function () {
+            $('#modalCancelButton').click(function () {
                 const button = $(this);
                 disableCancelConfirmButton(button);
+                console.log(button.data());
                 const appId = button.data('app-id');
 
                 $.post('{% url 'cancel_appointment' %}', {appId: button.data('app-id')})
