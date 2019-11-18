@@ -6,12 +6,13 @@
         <ul class="fa-ul">
             {{#each this}}
                 <li data-app-id="{{this.id}}">
-                    <span class="fa-li"><i class="far fa-square"></i></span>
-                    <b class="name">{{this.student_name}}</b> ({{this.course}}) {{join this.tests}}
                     <a href="#" data-app-id="{{this.id}}"
                           class="cancel-inline float-right badge badge-secondary d-print-none d-none d-md-block">
                         annuleren
                     </a>
+                    <span class="fa-li"><i class="far fa-square"></i></span>
+                    <b class="name">{{this.student_name}}</b> ({{this.course}}) {{join this.tests}}
+
                 </li>
             {{/each}}
         </ul>
