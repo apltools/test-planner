@@ -4,19 +4,21 @@
 {% endblock %}
 {% block main %}
     <div class="row">
-        <div class="col-md-2 d-print-none">
+        <div class="col-md-3 d-print-none">
             <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
                 {% for moment in test_moments %}
                     <a class="nav-link" id="date-{{ moment.id }}-tab" role="tab"
                        href="#date-{{ moment.id }}" data-tm-id="{{ moment.id }}"
                        data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
+                {% empty %}
+                    <a class="nav-link"  role="tab"
+                       href="#"
+                       data-toggle="pill">There a no dates</a>
                 {% endfor %}
             </div>
         </div>
-        <div class="col-md-10">
-            <div class="tab-content">
-                <div id="student-list"></div>
-            </div>
+        <div class="col-md-9">
+            <div id="student-list"></div>
         </div>
     </div>
     {% include 'dash/cancelModal.html' %}
@@ -26,7 +28,7 @@
     {% load static %}
     <script>
         Handlebars.registerHelper("join", function (context, block) {
-            var delimiter = block.hash.delimiter || ", ";
+            const delimiter = block.hash.delimiter || ", ";
             return context.join(delimiter);
         });
 
@@ -51,6 +53,16 @@
                 "    <span class=\"sr-only\">Loading...</span>\n" +
                 "  </div>\n" +
                 "</div>");
+        }
+
+        function prepareModal(cancelVars) {
+            const modalBody = $('.modal-body');
+            modalBody.html("");
+            $.get('{% static 'dash/templates/cancel.hbs' %}')
+                .done(function (data) {
+                    const cancelTemplate = Handlebars.compile(data);
+                    modalBody.html(cancelTemplate(cancelVars));
+                });
         }
 
         function getCookie(name) {
@@ -88,40 +100,40 @@
             // Load appointment template
             $.get('{% static 'dash/templates/appointments.hbs' %}')
                 .done(function (data) {
-                    var template = Handlebars.compile(data);
+                    const template = Handlebars.compile(data);
 
                     // Bind on-click to menu pills
                     $('a[data-toggle="pill"]').on("shown.bs.tab", function () {
-                        location.hash = `date-${$(this).data('tm-id')}`;
+                        const tmId = $(this).data('tm-id');
+
+                        location.hash = `date-${tmId}`;
 
                         // Get appointments
-                        $.getJSON(`/api/appointments/${$(this).data('tm-id')}`)
+                        $.getJSON(`/api/appointments/${tmId}`)
                             .done(function (data) {
                                 $('#student-list').html(template(data));
 
                                 // Bind delete function to appointments
                                 $('.appointment-listing').click(function () {
-                                    var li = $(this);
+                                    if ($(window).width() < 768) {
+                                        return
+                                    }
+                                    const li = $(this);
                                     $('#cancelAppointmentButton').data('app-id', li.data('app-id'));
 
-                                    var cancel_vars = {
+                                    var cancelVars = {
                                         time: li.parent().siblings().html(),
                                         name: li.find('.name').html()
                                     };
 
-                                    // Get template for modal-body
-                                    $.get('{% static 'dash/templates/cancel.hbs' %}')
-                                        .done(function (data) {
-                                            var del_template = Handlebars.compile(data);
-                                            $('.modal-body').html(del_template(cancel_vars));
-                                        });
+                                    prepareModal(cancelVars);
 
                                     $('#cancelConfirmModal').modal('show');
                                 });
                             });
                     });
 
-                    var hashTab = $(`a[href="${location.hash}"]`);
+                    const hashTab = $(`a[href="${location.hash}"]`);
                     if (hashTab.length) {
                         hashTab.tab('show')
                     } else {
@@ -130,9 +142,9 @@
                 });
 
             $('#cancelAppointmentButton').click(function () {
-                var button = $(this);
+                const button = $(this);
                 disableCancelConfirmButton(button);
-                var appId = button.data('app-id');
+                const appId = button.data('app-id');
 
                 $.post('{% url 'cancel_appointment' %}', {appId: button.data('app-id')})
                     .done(function (data) {

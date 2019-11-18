@@ -154,6 +154,7 @@ class Test(models.Model):
         return self.name
 
     class Meta:
+        ordering = ('name',)
         verbose_name = _("Toetsje")
         verbose_name_plural = _("Toetsjes")
 

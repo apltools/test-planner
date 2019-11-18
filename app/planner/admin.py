@@ -9,8 +9,6 @@ class CourseTimeSlotMemberInline(admin.TabularInline):
     extra = 1
     # One of these lines is the better solution :)
     form = CourseTimeSlotForm
-    # filter_horizontal  = ('allowed_tests',)
-
 
 class TestMomentAdmin(admin.ModelAdmin):
     inlines = (CourseTimeSlotMemberInline,)
