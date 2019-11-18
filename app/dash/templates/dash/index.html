@@ -114,22 +114,22 @@
                                 $('#student-list').html(template(data));
 
                                 // Bind delete function to appointments
-                                $('.appointment-listing').click(function () {
-                                    if ($(window).width() < 768) {
-                                        return
-                                    }
-                                    const li = $(this);
-                                    $('#cancelAppointmentButton').data('app-id', li.data('app-id'));
-
-                                    var cancelVars = {
-                                        time: li.parent().siblings().html(),
-                                        name: li.find('.name').html()
-                                    };
-
-                                    prepareModal(cancelVars);
-
-                                    $('#cancelConfirmModal').modal('show');
-                                });
+                                {#$('.appointment-listing').click(function () {#}
+                                {#    if ($(window).width() < 768) {#}
+                                {#        return#}
+                                {#    }#}
+                                {#    const li = $(this);#}
+                                {#    $('#cancelAppointmentButton').data('app-id', li.data('app-id'));#}
+                                {##}
+                                {#    var cancelVars = {#}
+                                {#        time: li.parent().siblings().html(),#}
+                                {#        name: li.find('.name').html()#}
+                                {#    };#}
+                                {##}
+                                {#    prepareModal(cancelVars);#}
+                                {##}
+                                {#    $('#cancelConfirmModal').modal('show');#}
+                                {#});#}
                             });
                     });
 
