@@ -9,9 +9,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from planner.models import TestMoment
 
 nav_items = {
-    'Home': 'index',
-    'History': 'history',
-    'Admin': 'admin:index',
+    'Home': 'dash:index',
+    'Geschiedenis': 'dash:history',
 }
 
 
