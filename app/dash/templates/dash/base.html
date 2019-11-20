@@ -5,7 +5,7 @@
 {% endblock %}
 {% block nav %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="navbar-brand">Test Planner</div>
+        <a class="navbar-brand" href="{% url 'dash:index' %}">Toets Planner</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -17,7 +17,7 @@
                     {% url link as the_url %}
                     <li class="nav-item {% if the_url == request.path %}active{% endif %}">
                         <a class="nav-link" href="{{ the_url }}">
-                            {{ name }}{% if the_url == request.path %}<span class="sr-only">(current)</span>{% endif %}
+                            {{ name }}{% if the_url == request.path %}<span class="sr-only">(huidig)</span>{% endif %}
                         </a>
                     </li>
                 {% endfor %}
@@ -27,7 +27,7 @@
                     <a class="nav-link" href="{% url 'admin:index' %}">Django Admin</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin:logout' %}">Log Out</a>
+                    <a class="nav-link" href="{% url 'admin:logout' %}">Uitloggen</a>
                 </li>
             </ul>
         </div>
