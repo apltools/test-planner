@@ -11,4 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build the Docker image
-      run: docker build app --file Dockerfile.prod --tag web:$(date +%s)
+      run: |
+        cd app
+        docker build . --file Dockerfile.prod --tag web:$(date +%s)
