@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
+from django.template.defaultfilters import date as _date, time as _time
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
@@ -29,7 +30,7 @@ class User(AbstractUser):
 
 
 class Course(models.Model):
-    name = models.fields.CharField(max_length=64)
+    name = models.fields.CharField(max_length=64, verbose_name='Naam')
     short_name = models.fields.SlugField(max_length=16)
 
     def __str__(self):
@@ -71,6 +72,14 @@ class TestMoment(models.Model):
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
                                      verbose_name=_("Vakken"))
     uuid = models.fields.UUIDField(default=uuid4)
+
+    def time_string(self):
+        return f'{_time(self.start_time)} tot {_time(self.end_time)}'
+    time_string.short_description = "Tijden"
+
+    def course_name_list(self):
+        return [course.name for course in self.courses.all()]
+    course_name_list.short_description = "Vakken"
 
     @property
     def appointments_for_moment(self):
@@ -133,6 +142,7 @@ class TestMoment(models.Model):
         verbose_name = _("Toetsmoment")
         verbose_name_plural = _("Toetsmomenten")
         unique_together = ['start_time', 'end_time', 'location', 'date']
+        ordering = ('-date', 'start_time')
 
 
 class CourseMoment(models.Model):
