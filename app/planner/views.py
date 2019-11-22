@@ -9,6 +9,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.template.defaultfilters import date as _date, time as _time
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from .forms import AppointmentForm
 from .models import Appointment, Course, TestMoment
@@ -59,7 +60,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
     # Validate of date isn't in the past.
     if test_moment.date < tz.localdate():
         return render(request, 'planner/error.html',
-                      {'error_message': 'Deze datum is inmiddels verlopen.',
+                      {'error_message': _('Deze datum is inmiddels verlopen.'),
                        'course': course, })
 
     if request.method == "POST":
@@ -69,7 +70,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
             # Check if time is full
             if not test_moment.spots_available(form.cleaned_data['start_time'], course):
                 return render(request, 'planner/error.html',
-                              {'error_message': 'Waarschijnlijk was iemand je voor, dit tijdstip is helaas al vol.',
+                              {'error_message': _('Waarschijnlijk was iemand je voor, dit tijdstip is helaas al vol.'),
                                'course': course, })
 
             # Check if time is in the past
@@ -78,7 +79,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
                 now = tz.localtime().time()
                 if form.cleaned_data['start_time'] <= now:
                     return render(request, 'planner/error.html',
-                                  {'error_message': 'Deze tijd mag niet meer gekozen worden.',
+                                  {'error_message': _('Deze tijd mag niet meer gekozen worden.'),
                                    'course': course})
 
             app = Appointment()
@@ -95,7 +96,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
                 app.save()
             except IntegrityError:
                 return render(request, 'planner/error.html',
-                              {'error_message': 'Het maken van een dubbele afspraak op een dag is niet toegestaan.',
+                              {'error_message': _('Het maken van een dubbele afspraak op een dag is niet toegestaan.'),
                                'course': course, })
 
             app.tests.set(form.cleaned_data['tests'])
@@ -135,14 +136,14 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
     url = request.build_absolute_uri(
         reverse("cancel", kwargs={"course_name": course.short_name, "secret": appointment.cancel_secret}))
 
-    message = f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
+    message = _(f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
               f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {test_moment.location}.\r\n' \
-              f'Wil je de afspraak anuleren, dat kan via deze link {url}'
+              f'Wil je de afspraak anuleren, dat kan via deze link {url}')
 
     if not settings.EMAIL_HOST:
         print(message)
         return
-    send_mail(subject=f'Toetsje ingepland voor {course.name}',
+    send_mail(subject=_(f'Toetsje ingepland voor {course.name}'),
               message=message,
               from_email=settings.EMAIL_FROM,
               recipient_list=[appointment.email])
@@ -158,7 +159,7 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> H
         appointment = Appointment.objects.get(cancel_secret__exact=secret, course__exact=course)
     except Appointment.DoesNotExist:
         return render(request, 'planner/error.html',
-                      {'error_message': 'Ongeldige link',
+                      {'error_message': _('Ongeldige link'),
                        'course': course})
 
     if request.method == "POST":
@@ -167,15 +168,15 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> H
 
         if appointment.date < today:
             return render(request, 'planner/error.html',
-                          {'error_message': 'Dit toetsje is in het verleden',
+                          {'error_message': _('Dit toetsje is in het verleden'),
                            'course': course})
         elif appointment.date == today:
             if appointment.start_time <= now:
                 return render(request, 'planner/error.html',
-                              {'error_message': 'Dit toetsje is al gestart of is in het verleden',
+                              {'error_message': _('Dit toetsje is al gestart of is in het verleden'),
                                'course': course})
         appointment.delete()
 
-        return render(request, 'planner/error.html', {'error_message': "Afspraak verwijderd!"})
+        return render(request, 'planner/error.html', {'error_message': _("Afspraak verwijderd!")})
 
     return render(request, 'planner/cancel.html', {'course': course})

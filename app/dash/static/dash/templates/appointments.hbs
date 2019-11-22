@@ -2,7 +2,7 @@
 <h5>{{join test_moment.courses}}</h5>
 {{#each appointments}}
     <div class="timeSlot">
-        <h6 class="time">{{@key}} ({{this.length}})</h6>
+        <h6><span class="time">{{@key}}</span> ({{this.length}})</h6>
         <ul class="fa-ul">
             {{#each this}}
                 <li data-app-id="{{this.id}}">
