@@ -115,12 +115,12 @@
 
                                 // Bind delete function to appointments
                                 $('.cancel-inline').click(function () {
-                                    const span = $(this);
-                                    $('#modalCancelButton').data('app-id', span.data('app-id'));
+                                    const button = $(this);
+                                    $('#modalCancelButton').data('app-id', button.data('app-id'));
 
                                     var cancelVars = {
-                                        time: span.parent().parent().siblings().html(),
-                                        name: span.parent().find('.name').html()
+                                        time: button.parent().parent().siblings().find('.time').html(),
+                                        name: button.parent().find('.name').html()
                                     };
 
                                     prepareModal(cancelVars);
