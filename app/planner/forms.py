@@ -30,6 +30,8 @@ class AppointmentForm(forms.ModelForm):
         if self.test_moment and len(cleaned_data['tests']) > self.test_moment.max_tests:
             raise ValidationError(f"Kies maximaal {self.test_moment.max_tests} toetsjes.", code='invalid_test_amount')
 
+        return cleaned_data
+
     class Meta:
         model = Appointment
         fields = ['student_name', 'student_nr', 'email', 'tests', 'start_time', ]

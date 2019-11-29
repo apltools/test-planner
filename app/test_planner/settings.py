@@ -29,16 +29,18 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'planner.apps.PlannerConfig',
+    'dash.apps.DashConfig',
+    'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'planner.apps.PlannerConfig',
-    'dash.apps.DashConfig',
-    'api.apps.ApiConfig',
 ]
+
+AUTH_USER_MODEL = 'planner.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -49,8 +51,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-AUTH_USER_MODEL = 'planner.User'
 
 ROOT_URLCONF = 'test_planner.urls'
 

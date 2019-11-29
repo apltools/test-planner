@@ -1,6 +1,6 @@
 import datetime as dt
 from collections import defaultdict
-from typing import DefaultDict, ItemsView, List
+from typing import DefaultDict, ItemsView, List, TYPE_CHECKING
 from uuid import uuid4
 
 import django.utils.timezone as tz
@@ -9,6 +9,9 @@ from django.db import models
 from django.template.defaultfilters import time as _time
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
+
+if TYPE_CHECKING:
+    from .forms import AppointmentForm
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 

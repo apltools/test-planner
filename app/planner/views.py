@@ -99,8 +99,6 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
                               {'error_message': _('Het maken van een dubbele afspraak op een dag is niet toegestaan.'),
                                'course': course, })
 
-            app.tests.set(form.cleaned_data['tests'])
-
             send_confirm_email(course=course, appointment=app, test_moment=test_moment, request=request)
 
             return done(request, course=course, app=app, tm=test_moment)
@@ -136,15 +134,15 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
     url = request.build_absolute_uri(
         reverse("cancel", kwargs={"course_name": course.short_name, "secret": appointment.cancel_secret}))
 
-    message = _(f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
+    message = f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
               f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {test_moment.location}.\r\n' \
-              f'Wil je de afspraak anuleren, dat kan via deze link {url}')
+              f'Wil je de afspraak anuleren, dat kan via deze link {url}'
 
     if not settings.EMAIL_HOST:
         print(message)
         return
 
-    send_mail(subject=_(f'Toetsje ingepland voor {course.name}'),
+    send_mail(subject=f'Toetsje ingepland voor {course.name}',
               message=message,
               from_email=settings.EMAIL_FROM,
               recipient_list=[appointment.email])
