@@ -64,7 +64,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
                        'course': course, })
 
     if request.method == "POST":
-        form = AppointmentForm(request.POST)
+        form = AppointmentForm(request.POST, test_moment=test_moment)
 
         if form.is_valid():
             # Check if time is full
@@ -143,6 +143,7 @@ def send_confirm_email(*, course: Course, appointment: Appointment, test_moment:
     if not settings.EMAIL_HOST:
         print(message)
         return
+
     send_mail(subject=_(f'Toetsje ingepland voor {course.name}'),
               message=message,
               from_email=settings.EMAIL_FROM,

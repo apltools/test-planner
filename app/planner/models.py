@@ -6,9 +6,9 @@ from uuid import uuid4
 import django.utils.timezone as tz
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.template.defaultfilters import time as _time
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
-from django.template.defaultfilters import date as _date, time as _time
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
@@ -67,6 +67,7 @@ class TestMoment(models.Model):
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     end_time = models.fields.TimeField(verbose_name=_("Eindtijd"))
     test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
+    max_tests = models.fields.IntegerField(verbose_name=_('Aantal toetsjes'), default=3)
     hidden_from_total = models.fields.BooleanField(default=False, verbose_name=_("Verborgen"))
 
     courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
@@ -75,10 +76,12 @@ class TestMoment(models.Model):
 
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
+
     time_string.short_description = "Tijden"
 
     def course_name_list(self):
         return [course.name for course in self.courses.all()]
+
     course_name_list.short_description = "Vakken"
 
     @property
@@ -93,7 +96,6 @@ class TestMoment(models.Model):
 
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
-
 
     @property
     def slot_delta(self) -> dt.timedelta:

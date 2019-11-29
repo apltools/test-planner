@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.core.exceptions import ValidationError
 
-from .models import Appointment, CourseMoment, User
+from .models import Appointment, CourseMoment, TestMoment, User
 
 
 class CourseTimeSlotForm(forms.ModelForm):
@@ -19,6 +20,16 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 
 
 class AppointmentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.test_moment: TestMoment = kwargs.pop("test_moment", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_tests(self):
+        cleaned_data = self.cleaned_data
+
+        if self.test_moment and len(cleaned_data['tests']) > self.test_moment.max_tests:
+            raise ValidationError(f"Kies maximaal {self.test_moment.max_tests} toetsjes.", code='invalid_test_amount')
+
     class Meta:
         model = Appointment
         fields = ['student_name', 'student_nr', 'email', 'tests', 'start_time', ]
@@ -35,9 +46,10 @@ class AppointmentForm(forms.ModelForm):
             }),
             'start_time': forms.HiddenInput(),
         }
+
         error_messages = {
             'tests': {
-                'required': "Kies minimaal één toetsje."
+                'required': "Kies minimaal één toetsje.",
             },
             'start_time': {
                 'required': "Kies een tijd"
