@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm
-from .models import User, Course, TestMoment, Test, Appointment, CourseMoment
+from .models import Appointment, Course, CourseMoment, Test, TestMoment, User
 
 
 class CourseTimeSlotMemberInline(admin.TabularInline):
@@ -11,18 +11,22 @@ class CourseTimeSlotMemberInline(admin.TabularInline):
     # One of these lines is the better solution :)
     form = CourseTimeSlotForm
 
+
 class TestMomentAdmin(admin.ModelAdmin):
     inlines = (CourseTimeSlotMemberInline,)
-    list_display = ('date','time_string', 'course_name_list')
+    list_display = ('date', 'time_string', 'course_name_list')
+
 
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ['email', 'username', 'is_staff']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff']
+
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Course, CourseAdmin)
