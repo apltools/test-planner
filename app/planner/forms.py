@@ -1,6 +1,7 @@
 from django import forms
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
-from .models import Appointment, CourseMoment
+from .models import Appointment, CourseMoment, User
 
 
 class CourseTimeSlotForm(forms.ModelForm):
@@ -45,3 +46,15 @@ class AppointmentForm(forms.ModelForm):
                 'invalid': "Ongeldig studentnummer"
             },
         }
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = User
+        fields = ('username', 'email')

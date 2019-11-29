@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
-from .forms import CourseTimeSlotForm
+from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm
 from .models import User, Course, TestMoment, Test, Appointment, CourseMoment
 
 
@@ -17,7 +18,13 @@ class TestMomentAdmin(admin.ModelAdmin):
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
-admin.site.register(User)
+class CustomUserAdmin(UserAdmin):
+    add_form = CustomUserCreationForm
+    form = CustomUserChangeForm
+    model = User
+    list_display = ['email', 'username', 'is_staff']
+
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(TestMoment, TestMomentAdmin)
 admin.site.register(Test)
