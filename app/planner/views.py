@@ -99,6 +99,8 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
                               {'error_message': _('Het maken van een dubbele afspraak op een dag is niet toegestaan.'),
                                'course': course, })
 
+            app.tests.set(form.cleaned_data['tests'])
+
             send_confirm_email(course=course, appointment=app, test_moment=test_moment, request=request)
 
             return done(request, course=course, app=app, tm=test_moment)
