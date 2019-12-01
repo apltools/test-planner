@@ -22,15 +22,16 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.test_moment: TestMoment = kwargs.pop("test_moment", None)
+
         super().__init__(*args, **kwargs)
 
-    # def clean_tests(self):
-    #     cleaned_data = self.cleaned_data
-    #
-    #     if self.test_moment and len(cleaned_data['tests']) > self.test_moment.max_tests:
-    #         raise ValidationError(f"Kies maximaal {self.test_moment.max_tests} toetsjes.", code='invalid_test_amount')
-    #
-    #     return cleaned_data
+    def clean_tests(self):
+        cleaned_data = self.cleaned_data
+
+        if self.test_moment and len(cleaned_data['tests']) > self.test_moment.max_tests:
+            raise ValidationError(f"Kies maximaal {self.test_moment.max_tests} toetsjes.", code='invalid_test_amount')
+
+        return cleaned_data['tests']
 
     class Meta:
         model = Appointment
