@@ -19,34 +19,34 @@ services:
     environment:
       - DEBUG=0
     volumes:
-      - static_files:/code/staticfiles
-    expose:
-      - 8000
+      - ./staticfiles:/code/staticfiles
+    ports:
+      - 8000:8000
     depends_on:
       - db
     restart: unless-stopped
-  nginx:
-    build: ./nginx
-    ports:
-      - 80:80
-      - 443:443
-    depends_on:
-      - web
-    volumes:
-      - static_files:/code/staticfiles
-      - letsencrypt:/etc/letsencrypt
-      - www-certbot:/var/www/certbot
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-    restart: unless-stopped
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - www-certbot:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    restart: unless-stopped
+#  nginx:
+#    build: ./nginx
+#    ports:
+#      - 80:80
+#      - 443:443
+#    depends_on:
+#      - web
+#    volumes:
+#      - static_files:/code/staticfiles
+#      - letsencrypt:/etc/letsencrypt
+#      - www-certbot:/var/www/certbot
+#    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+#    restart: unless-stopped
+#  certbot:
+#    image: certbot/certbot
+#    volumes:
+#      - letsencrypt:/etc/letsencrypt
+#      - www-certbot:/var/www/certbot
+#    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+#    restart: unless-stopped
 volumes:
   postgres_data:
-  static_files:
-  letsencrypt:
-  www-certbot:
+#  static_files:
+#  letsencrypt:
+#  www-certbot:
