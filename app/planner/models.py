@@ -63,24 +63,40 @@ class TimeOption:
     class Meta:
         managed = False
 
-
-class TestMoment(models.Model):
+class AbstractMoment(models.Model):
     location = models.fields.CharField(max_length=16, verbose_name=_("Locatie"))
     date = models.fields.DateField(verbose_name=_("Datum"))
     start_time = models.fields.TimeField(verbose_name=_("Begintijd"))
     end_time = models.fields.TimeField(verbose_name=_("Eindtijd"))
-    test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
-    max_tests = models.fields.IntegerField(verbose_name=_('Aantal toetsjes'), default=3)
     hidden_from_total = models.fields.BooleanField(default=False, verbose_name=_("Verborgen"))
-
-    courses = models.ManyToManyField(Course, through='CourseMoment', related_name='test_moments',
-                                     verbose_name=_("Vakken"))
-    uuid = models.fields.UUIDField(default=uuid4)
 
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
-
     time_string.short_description = "Tijden"
+
+
+    def __str__(self) -> str:
+        return f'{self.date} van {self.start_time} tot {self.end_time}'
+
+    class Meta:
+        abstract = True
+
+        ordering = ('-date', 'start_time')
+
+
+class NonTestMoment(AbstractMoment):
+    """Model for range in time for non test moments"""
+
+
+class TestMoment(AbstractMoment):
+    """Model for range in time in which tests can be planned."""
+
+    test_length = models.fields.IntegerField(verbose_name=_("Toetslengte"), default=15)
+    max_tests = models.fields.IntegerField(verbose_name=_('Aantal toetsjes'), default=3)
+
+    courses = models.ManyToManyField(Course, through='CourseMomentRelation', related_name='test_moments',
+                                     verbose_name=_("Vakken"))
+    uuid = models.fields.UUIDField(default=uuid4)
 
     def course_name_list(self):
         return [course.name for course in self.courses.all()]
@@ -97,8 +113,6 @@ class TestMoment(models.Model):
             apps_time[str(appointment.start_time)[:-3]].append(appointment)
         return apps_time
 
-    def __str__(self) -> str:
-        return f'{self.date} van {self.start_time} tot {self.end_time}'
 
     @property
     def slot_delta(self) -> dt.timedelta:
@@ -141,16 +155,16 @@ class TestMoment(models.Model):
     def spots_available(self, time: dt.time, course: Course) -> bool:
         appointments = Appointment.objects.filter(date__exact=self.date).filter(start_time__exact=time).filter(
             course=course).count()
-        return appointments < self.coursemoment_set.get(course=course).places
+        return appointments < self.coursemomentrelation_set.get(course=course).places
 
-    class Meta:
+    class Meta(AbstractMoment.Meta):
         verbose_name = _("Toetsmoment")
         verbose_name_plural = _("Toetsmomenten")
         unique_together = ['start_time', 'end_time', 'location', 'date']
-        ordering = ('-date', 'start_time')
 
 
-class CourseMoment(models.Model):
+class CourseMomentRelation(models.Model):
+    """Intermediate table for relation between Course and a TestMoment"""
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_("Vak"))
     time_slot = models.ForeignKey(TestMoment, on_delete=models.CASCADE, verbose_name=_("Toetsmoment"))
 

@@ -108,7 +108,7 @@ def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpRespo
     else:
         form = AppointmentForm()
 
-    course_moment = test_moment.coursemoment_set.get(course__exact=course)
+    course_moment = test_moment.coursemomentrelation_set.get(course__exact=course)
     # Insert the allowed tests for the course into the form as options.
     form.fields['tests'].queryset = course_moment.allowed_tests.all()
 

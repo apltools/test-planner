@@ -2,12 +2,12 @@ from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
 
-from .models import Appointment, CourseMoment, TestMoment, User
+from .models import Appointment, CourseMomentRelation, TestMoment, User
 
 
 class CourseTimeSlotForm(forms.ModelForm):
     class Meta:
-        model = CourseMoment
+        model = CourseMomentRelation
         fields = '__all__'
         widgets = {
             'allowed_tests': forms.CheckboxSelectMultiple

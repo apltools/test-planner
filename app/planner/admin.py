@@ -2,11 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm
-from .models import Appointment, Course, CourseMoment, Test, TestMoment, User
+from .models import Appointment, Course, CourseMomentRelation, Test, TestMoment, User
 
 
 class CourseTimeSlotMemberInline(admin.TabularInline):
-    model = CourseMoment
+    model = CourseMomentRelation
     extra = 1
     # One of these lines is the better solution :)
     form = CourseTimeSlotForm
