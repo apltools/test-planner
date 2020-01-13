@@ -118,7 +118,7 @@ EMAIL_USE_TLS = bool(int(os.environ.get('EMAIL_USE_TLS', '0')))
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 # LANGUAGE_CODE = 'en-us'
-LANGUAGE_CODE = 'nl-nl'
+LANGUAGE_CODE = 'nl'
 
 TIME_ZONE = 'Europe/Amsterdam'
 

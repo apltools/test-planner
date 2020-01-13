@@ -1,6 +1,6 @@
 import datetime as dt
 from collections import defaultdict
-from typing import DefaultDict, ItemsView, List, TYPE_CHECKING
+from typing import DefaultDict, ItemsView, List
 from uuid import uuid4
 
 import django.utils.timezone as tz
@@ -9,9 +9,6 @@ from django.db import models
 from django.template.defaultfilters import time as _time
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
-
-if TYPE_CHECKING:
-    from .forms import AppointmentForm
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
@@ -63,6 +60,7 @@ class TimeOption:
     class Meta:
         managed = False
 
+
 class AbstractMoment(models.Model):
     location = models.fields.CharField(max_length=16, verbose_name=_("Locatie"))
     date = models.fields.DateField(verbose_name=_("Datum"))
@@ -72,8 +70,8 @@ class AbstractMoment(models.Model):
 
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
-    time_string.short_description = "Tijden"
 
+    time_string.short_description = "Tijden"
 
     def __str__(self) -> str:
         return f'{self.date} van {self.start_time} tot {self.end_time}'
@@ -112,7 +110,6 @@ class TestMoment(AbstractMoment):
         for appointment in appointments:
             apps_time[str(appointment.start_time)[:-3]].append(appointment)
         return apps_time
-
 
     @property
     def slot_delta(self) -> dt.timedelta:
