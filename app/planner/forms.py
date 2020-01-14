@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
 
-from .models import Appointment, CourseMomentRelation, TestMoment, User
+from .models import Appointment, CourseMomentRelation, TestMoment, User, Event
 
 
 class CourseTimeSlotForm(forms.ModelForm):
@@ -62,14 +62,27 @@ class AppointmentForm(forms.ModelForm):
             },
         }
 
+class EventForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data['event_type']._slot_length and not cleaned_data['_slot_length']:
+            raise ValidationError('No length was provided')
+        elif not cleaned_data['event_type']._location and not cleaned_data['location']:
+            raise ValidationError('No locations was provided')
+        print(f"{cleaned_data=}")
+        return cleaned_data
+
+    class Meta:
+        exclude = ('',)
+        model = Event
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username', 'email', 'first_name', 'last_name')
 
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username', 'email', 'first_name', 'last_name')

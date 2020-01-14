@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import django.utils.timezone as tz
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.template.defaultfilters import time as _time
 from django.utils.crypto import get_random_string
@@ -27,6 +28,78 @@ def get_cancel_secret(length: int = 64) -> str:
 
 class User(AbstractUser):
     pass
+
+
+class EventInfo(models.Model):
+    _host = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    _slot_length = models.IntegerField(blank=True, null=True)
+    _location = models.fields.CharField(max_length=16, blank=True, null=True)
+    _extras = JSONField(blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class EventType(EventInfo):
+    name = models.CharField(max_length=64, unique=True, null=True)
+    slug = models.SlugField(max_length=16, unique=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta(EventInfo.Meta):
+        pass
+
+
+class Event(EventInfo):
+    event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='events')
+
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def time_string(self):
+        return f'{_time(self.start_time)} tot {_time(self.end_time)}'
+    time_string.short_description = "Tijden"
+
+    @property
+    def slot_length(self) -> int:
+        return self._slot_length if self._slot_length else self.event_type._slot_length
+
+    @property
+    def location(self) -> str:
+        return self._location if self._location else self.event_type._location
+
+    @property
+    def slots(self) -> List[dt.time]:
+        """List of possible time slots."""
+        if not self.slot_length:
+            return []
+        cur_time = self.start_time
+
+        slots_list: List[dt.time] = [cur_time]
+
+        while (cur_time := add_time(cur_time, minutes=self.slot_length)) < self.end_time:
+            slots_list.append(cur_time)
+
+        return slots_list
+
+
+    class Meta(EventInfo.Meta):
+        pass
+
+class EventAppointment(models.Model):
+    # Student info
+    name = models.CharField(max_length=32)
+    student_nr = models.PositiveIntegerField()
+
+    # Date/Time
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+
+    created = models.DateTimeField(auto_now_add=True)
 
 
 class Course(models.Model):
@@ -80,10 +153,6 @@ class AbstractMoment(models.Model):
         abstract = True
 
         ordering = ('-date', 'start_time')
-
-
-class NonTestMoment(AbstractMoment):
-    """Model for range in time for non test moments"""
 
 
 class TestMoment(AbstractMoment):

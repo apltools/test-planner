@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm
-from .models import Appointment, Course, CourseMomentRelation, Test, TestMoment, User
+from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm, EventForm
+from .models import Appointment, Course, CourseMomentRelation, Test, TestMoment, User, EventType, Event,EventAppointment
 
 
 class CourseTimeSlotMemberInline(admin.TabularInline):
@@ -27,9 +27,18 @@ class CustomUserAdmin(UserAdmin):
     model = User
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff']
 
+class EventAdmin(admin.ModelAdmin):
+    readonly_fields = ['slots', 'slot_length']
+    form = EventForm
+    list_display = ['event_type', 'date', 'time_string']
+
 
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Course, CourseAdmin)
-admin.site.register(TestMoment, TestMomentAdmin)
-admin.site.register(Test)
-admin.site.register(Appointment)
+admin.site.register(EventType)
+admin.site.register(EventAppointment)
+admin.site.register(Event, EventAdmin)
+
+# admin.site.register(Course, CourseAdmin)
+# admin.site.register(TestMoment, TestMomentAdmin)
+# admin.site.register(Test)
+# admin.site.register(Appointment)
