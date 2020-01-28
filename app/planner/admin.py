@@ -8,7 +8,6 @@ from .models import Appointment, Course, CourseMomentRelation, Test, TestMoment,
 class CourseTimeSlotMemberInline(admin.TabularInline):
     model = CourseMomentRelation
     extra = 1
-    # One of these lines is the better solution :)
     form = CourseTimeSlotForm
 
 
@@ -28,9 +27,9 @@ class CustomUserAdmin(UserAdmin):
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff']
 
 class EventAdmin(admin.ModelAdmin):
-    readonly_fields = ['slots', 'slot_length']
+    readonly_fields = ('slots', 'slot_length')
     form = EventForm
-    list_display = ['event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'extras']
+    list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'extras')
 
 
 admin.site.register(User, CustomUserAdmin)

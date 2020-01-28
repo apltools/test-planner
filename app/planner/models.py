@@ -1,6 +1,6 @@
 import datetime as dt
 from collections import defaultdict
-from typing import DefaultDict, ItemsView, List
+from typing import DefaultDict, ItemsView, List, Dict, Optional
 from uuid import uuid4
 
 import django.utils.timezone as tz
@@ -60,6 +60,7 @@ class Event(EventInfo):
     date = models.DateField(verbose_name=_("Datum"))
     start_time = models.TimeField(verbose_name=_("Start Tijd"))
     end_time = models.TimeField(verbose_name=_("Eind Tijd"))
+    uuid = models.UUIDField(default=uuid4)
 
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
@@ -75,7 +76,7 @@ class Event(EventInfo):
     location.short_description = _("Locatie")
 
     @property
-    def host(self) -> User:
+    def host(self) -> Optional[User]:
         return self._host if self._host else self.event_type._host
 
     @property
@@ -87,15 +88,15 @@ class Event(EventInfo):
 
         slots_list: List[dt.time] = [cur_time]
 
-        while (cur_time := add_time(cur_time, minutes=self.slot_length)) < self.end_time:
+        while (cur_time := add_time(cur_time, minutes=self.slot_length())) < self.end_time:
             slots_list.append(cur_time)
 
         return slots_list
 
     @property
-    def extras(self):
-        event_extras = self.event_type._extras
-        own_extras = self._extras
+    def extras(self) -> Optional[Dict]:
+        event_extras: Dict = self.event_type._extras
+        own_extras: Dict = self._extras
         if event_extras and own_extras:
             event_extras.update(own_extras)
             return event_extras
@@ -105,14 +106,20 @@ class Event(EventInfo):
             return event_extras
         return None
 
+    def extra_inputs(self) -> Optional[Dict]:
+        if input := self.extras.get('input'):
+            return input
+        return None
+
     class Meta(EventInfo.Meta):
         pass
 
 
 class EventAppointment(models.Model):
     # Student info
-    name = models.CharField(max_length=32)
-    student_nr = models.PositiveIntegerField()
+    name = models.CharField(max_length=32, verbose_name=_('Naam'))
+    student_nr = models.PositiveIntegerField(verbose_name=_('Studentnummer'))
+    email = models.EmailField()
 
     # Date/Time
     date = models.DateField()
@@ -120,6 +127,8 @@ class EventAppointment(models.Model):
     end_time = models.TimeField()
 
     created = models.DateTimeField(auto_now_add=True)
+
+
 
 
 """ENDOFNEW"""
