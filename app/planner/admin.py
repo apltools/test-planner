@@ -30,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
 class EventAdmin(admin.ModelAdmin):
     readonly_fields = ['slots', 'slot_length']
     form = EventForm
-    list_display = ['event_type', 'date', 'time_string']
+    list_display = ['event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'extras']
 
 
 admin.site.register(User, CustomUserAdmin)

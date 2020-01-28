@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     path('done/', views.done, name='done'),
-    path('<slug:course_name>/', views.choose_date, name='choose_date'),
+    path('<slug:event_type>/', views.event_type_index, name='event_type_index'),
     re_path(r'^(?P<course_name>[a-zA-Z0-9_-]+)/cancel/(?P<secret>[a-zA-Z0-9]{64})/?$', views.cancel_appointment,
             name='cancel'),
     path('<slug:course_name>/<uuid:uuid>/', views.choose_time, name='choose_time'),

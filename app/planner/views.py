@@ -12,20 +12,20 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from .forms import AppointmentForm
-from .models import Appointment, Course, TestMoment
+from .models import Appointment, Course, TestMoment, EventType
 
 
 def index(request) -> HttpResponse:
     return render(request, 'planner/index.html')
 
 
-def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
+def event_type_index(request: HttpRequest, event_type: str) -> HttpResponse:
     try:
-        course = Course.objects.get(short_name=course_name)
-    except Course.DoesNotExist:
-        raise Http404('Invalid course name')
+        event_type = EventType.objects.get(slug=event_type)
+    except EventType.DoesNotExist:
+        raise Http404('Invalid event type')
 
-    test_moments = course.tests_this_week()
+    test_moments = event_type.events.all()
 
     moments_per_date = defaultdict(list)
 
@@ -37,7 +37,7 @@ def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
 
     context = {
         'moments_per_date': moments_per_date.items(),
-        'course': course,
+        # 'course': course,
     }
 
     return render(request, 'planner/dates.html', context=context)

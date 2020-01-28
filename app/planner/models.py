@@ -30,6 +30,9 @@ class User(AbstractUser):
     pass
 
 
+"""NEW"""
+
+
 class EventInfo(models.Model):
     _host = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     _slot_length = models.IntegerField(blank=True, null=True)
@@ -54,21 +57,26 @@ class EventType(EventInfo):
 class Event(EventInfo):
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='events')
 
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    date = models.DateField(verbose_name=_("Datum"))
+    start_time = models.TimeField(verbose_name=_("Start Tijd"))
+    end_time = models.TimeField(verbose_name=_("Eind Tijd"))
 
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
+
     time_string.short_description = "Tijden"
 
-    @property
     def slot_length(self) -> int:
         return self._slot_length if self._slot_length else self.event_type._slot_length
 
-    @property
     def location(self) -> str:
         return self._location if self._location else self.event_type._location
+
+    location.short_description = _("Locatie")
+
+    @property
+    def host(self) -> User:
+        return self._host if self._host else self.event_type._host
 
     @property
     def slots(self) -> List[dt.time]:
@@ -84,9 +92,22 @@ class Event(EventInfo):
 
         return slots_list
 
+    @property
+    def extras(self):
+        event_extras = self.event_type._extras
+        own_extras = self._extras
+        if event_extras and own_extras:
+            event_extras.update(own_extras)
+            return event_extras
+        elif own_extras:
+            return own_extras
+        elif event_extras:
+            return event_extras
+        return None
 
     class Meta(EventInfo.Meta):
         pass
+
 
 class EventAppointment(models.Model):
     # Student info
@@ -98,8 +119,10 @@ class EventAppointment(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
 
-
     created = models.DateTimeField(auto_now_add=True)
+
+
+"""ENDOFNEW"""
 
 
 class Course(models.Model):
