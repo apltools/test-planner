@@ -3,6 +3,10 @@ Handlebars.registerHelper("join", function (context, block) {
     return context.join(delimiter);
 });
 
+Handlebars.registerHelper('json', function(context) {
+    return JSON.stringify(context, null, 1);
+});
+
 function removeTrailingSlash(str) {
     return str.replace(/\/$/, "");
 }

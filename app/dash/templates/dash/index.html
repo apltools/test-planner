@@ -6,10 +6,10 @@
     <div class="row">
         <div class="col-md-3 d-print-none mb-2">
             <div id="dateTabList" class="nav flex-column nav-pills" role="tablist" aria-orientation="vertical">
-                {% for moment in test_moments %}
-                    <a class="nav-link" id="date-{{ moment.id }}-tab" role="tab"
-                       href="#date-{{ moment.id }}" data-tm-id="{{ moment.id }}"
-                       data-toggle="pill">{{ moment.date }} ({{ moment.location }})</a>
+                {% for event in events %}
+                    <a class="nav-link" id="date-{{ event.id }}-tab" role="tab"
+                       href="#date-{{ event.id }}" data-tm-id="{{ event.id }}"
+                       data-toggle="pill">{{ event.date }} ({{ event.location }})</a>
                 {% empty %}
                     <a class="nav-link"  role="tab"
                        href="#"

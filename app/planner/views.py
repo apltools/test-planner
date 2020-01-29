@@ -79,6 +79,7 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
             app.date = event.date
             app.end_time = add_time(app.start_time, minutes=event.slot_length())
             app.extras = extract_extras(request.POST, event)
+            app.event = event
             app.save()
 
             return render(request, 'planner/done.html', context={'app': app, 'event': event})

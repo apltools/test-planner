@@ -122,6 +122,9 @@ class Event(EventInfo):
             return input
         return None
 
+    def __str__(self):
+        return self.event_type.slug
+
     class Meta(EventInfo.Meta):
         pass
 
@@ -139,6 +142,7 @@ class EventAppointment(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
 
+    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True, related_name='appointments')
     extras = JSONField(null=True, blank=True)
 
     def time_string(self):
