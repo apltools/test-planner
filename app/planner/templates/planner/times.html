@@ -15,13 +15,12 @@
                 <h4>Plan een toetsje in voor {{ event_type.name }}</h4>
 
                 <p><span class="far fa-calendar fa-fw"></span> {{ event.date }}</p>
-                <p><span class="far fa-clock fa-fw"></span> {{ event.slot_length     }} minuten</p>
+                <p><span class="far fa-clock fa-fw"></span> {{ event.slot_length }} minuten</p>
                 <p><span class="fas fa-map-marker fa-fw"></span> {{ event.location }}</p>
                 {% if event_type.description != "" %}
                     <p>{{ event_type.description }}</p>
                 {% endif %}
                 {% csrf_token %}
-                {{ form.err }}
                 {% for field in form %}
                     {% if not field.is_hidden %}
                         <div class="form-group">
@@ -45,21 +44,21 @@
                                           btn-block
                                           {% if not show %}
                                               disabled
-                                          {% elif form.cleaned_data.start_time == time_option.time %}
+                                          {% elif form.cleaned_data.start_time == slot.time %}
                                               active
                                           {% endif %}
                                 ">
                                 <input type="radio"
                                        name="start_time"
-                                       value="{{ slot }}"
+                                       value="{{ slot.time }}"
                                         {% if not show %}
                                        disabled
-                                        {% elif form.cleaned_data.start_time == slot %}
+                                        {% elif form.cleaned_data.start_time == slot.time %}
                                        checked
                                         {% endif %}
                                 >
                                 {% if not show %}<s class="text-secondary">{% endif %}
-                                {{ slot }}
+                                {{ slot.time }}
                                 {% if not show %}</s>{% endif %}
                             </label>
                         {% endwith %}

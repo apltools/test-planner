@@ -1,22 +1,22 @@
 {% extends 'planner/base.html' %}
 
 {% block title %}
-    {{ course.name }}
+        {{ event.event_type.name }}
 {% endblock %}
 
 {% block nav-title %}
-    {{ course.name }}
+    {{ event.event_type.name }}
 {% endblock %}
 
 {% block main %}
     <h4>Je hebt je ingeschreven voor:</h4>
     <p><span class="far fa-calendar fa-fw"></span> {{ app.date }} om {{ app.start_time }}</p>
-    <p><span class="far fa-clock fa-fw"></span> {{ app.duration }} minuten</p>
-    <p><span class="fas fa-map-marker fa-fw"></span> {{ tm.location }}</p>
+{#    <p><span class="far fa-clock fa-fw"></span> {{ app }} minuten</p>#}
+    <p><span class="fas fa-map-marker fa-fw"></span> {{ event.location }}</p>
     <ul>
         {% for test in app.tests.all %}
             <li>{{ test.name }}</li>
         {% endfor %}
     </ul>
-    <a class="btn btn-outline-danger" href="{% url 'cancel' course.short_name app.cancel_secret %}">Annuleren</a>
+{#    <a class="btn btn-outline-danger" href="{% url 'cancel' course.short_name app.cancel_secret %}">Annuleren</a>#}
 {% endblock %}

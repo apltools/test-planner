@@ -31,10 +31,12 @@ class EventAdmin(admin.ModelAdmin):
     form = EventForm
     list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'extras')
 
+class EventAppointmentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'date', 'time_string', 'extras')
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(EventType)
-admin.site.register(EventAppointment)
+admin.site.register(EventAppointment, EventAppointmentAdmin)
 admin.site.register(Event, EventAdmin)
 
 # admin.site.register(Course, CourseAdmin)

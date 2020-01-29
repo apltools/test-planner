@@ -22,9 +22,11 @@ class CheckBoxSelectMultipleBootstrap(forms.CheckboxSelectMultiple):
 
 class EventAppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.INPUT_TYPES = {'checkbox': EventAppointmentForm.construct_checkbox}
+        self.INPUT_TYPES = {'checkbox': EventAppointmentForm.construct_checkbox,
+                            'radio': EventAppointmentForm.construct_radio}
         self.checkbox_max_amount = {}
-        fields = kwargs.pop("extra_fields", None)
+        self.event = kwargs.pop("event")
+        fields = self.event.extras.get("fields")
 
         super().__init__(*args, **kwargs)
 
@@ -60,9 +62,16 @@ class EventAppointmentForm(forms.ModelForm):
 
     @staticmethod
     def construct_checkbox(field):
-        choices = [(slugify(item), item) for item in field['options']]
+        choices = [(item, item) for item in field['options']]
         required = field.get('required', False)
         return forms.MultipleChoiceField(label=field['name'], widget=CheckBoxSelectMultipleBootstrap(), choices=choices, required=required)
+
+    @staticmethod
+    def construct_radio(field):
+        choices = [(item, item) for item in field['options']]
+        required = field.get('required', False)
+        return forms.ChoiceField(label=field['name'], widget=forms.RadioSelect(), choices=choices, required=required)
+
 
     class Meta:
         model = EventAppointment
@@ -79,6 +88,7 @@ class EventAppointmentForm(forms.ModelForm):
                 'class': 'form-control',
             }),
             'start_time': forms.HiddenInput(),
+
         }
 
         error_messages = {
@@ -89,6 +99,8 @@ class EventAppointmentForm(forms.ModelForm):
                 'required': "Kies een tijd."
             },
         }
+
+
 
     class UnsupportedFieldTypeException(Exception):
         pass

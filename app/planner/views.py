@@ -1,13 +1,14 @@
 from collections import defaultdict
+from typing import Dict, Type
 from uuid import UUID
 
 import django.utils.timezone as tz
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from .forms import AppointmentForm, EventAppointmentForm
-from .models import Appointment, Course, Event, EventType, TestMoment
+from .models import Appointment, Course, Event, EventType, TestMoment, EventAppointment, add_time
 
 
 def index(request) -> HttpResponse:
@@ -42,19 +43,27 @@ def event_type_index(request: HttpRequest, event_type: str) -> HttpResponse:
     return render(request, 'planner/events.html', context=context)
 
 
+def extract_extras(post: Type[QueryDict], event: Event) -> Dict:
+    names = [field['name'] for field in event.extras.get('fields')]
+    post_dict = dict(post)
+    extras = {name: post_dict[name] for name in names}
+    return extras
+
+
 def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpResponse:
     """View for choosing a time."""
 
-    # Validate course
+    # Validate EventType
     try:
         event_type = EventType.objects.get(slug__exact=event_type)
     except EventType.DoesNotExist:
         raise Http404('Invalid EventType')
 
+    # Validate Event
     try:
         event = Event.objects.get(uuid__exact=uuid, event_type__exact=event_type)
     except (EventType.DoesNotExist, ValueError):
-        raise Http404('Invalid uuid')
+        raise Http404('Invalid Event UUID')
 
     # Validate of date isn't in the past.
     # if event.date < tz.localdate():
@@ -63,10 +72,16 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
     #                    'course': course, })
 
     if request.method == "POST":
-        form = EventAppointmentForm(request.POST, extra_fields=event.extras.get('fields'))
+        # TODO: Check is slot if full and is slot isn't closed
+        form = EventAppointmentForm(request.POST, event=event)
         if form.is_valid():
-            pass
-            # form.save()
+            app: EventAppointment = form.save(commit=False)
+            app.date = event.date
+            app.end_time = add_time(app.start_time, minutes=event.slot_length())
+            app.extras = extract_extras(request.POST, event)
+            app.save()
+
+            return render(request, 'planner/done.html', context={'app': app, 'event': event})
 
     # if form.is_valid():
     #     # Check if time is full
@@ -108,7 +123,7 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
     #     return done(request, course=course, app=app, tm=test_moment)
 
     else:
-        form = EventAppointmentForm(extra_fields=event.extras.get('fields'))
+        form = EventAppointmentForm(event=event, initial={'date': event.date})
 
     context = {
         'event_type': event_type,

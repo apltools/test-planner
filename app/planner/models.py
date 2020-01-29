@@ -1,6 +1,6 @@
 import datetime as dt
 from collections import defaultdict
-from typing import DefaultDict, ItemsView, List, Dict, Optional
+from typing import DefaultDict, Dict, ItemsView, List, Optional
 from uuid import uuid4
 
 import django.utils.timezone as tz
@@ -33,6 +33,15 @@ class User(AbstractUser):
 """NEW"""
 
 
+class TimeSlot:
+    def __init__(self, time: dt.time, available: bool = True):
+        self.time: dt.time = time
+        self.available: bool = available
+
+    class Meta:
+        managed = False
+
+
 class EventInfo(models.Model):
     _host = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     _slot_length = models.IntegerField(blank=True, null=True)
@@ -55,6 +64,7 @@ class EventType(EventInfo):
 
 
 class Event(EventInfo):
+    """Represents a event, a moments on a day with one or multiple timeslots."""
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='events')
 
     date = models.DateField(verbose_name=_("Datum"))
@@ -80,16 +90,16 @@ class Event(EventInfo):
         return self._host if self._host else self.event_type._host
 
     @property
-    def slots(self) -> List[dt.time]:
+    def slots(self) -> List[TimeSlot]:
         """List of possible time slots."""
         if not self.slot_length:
             return []
         cur_time = self.start_time
 
-        slots_list: List[dt.time] = [cur_time]
+        slots_list: List[TimeSlot] = [TimeSlot(cur_time)]
 
         while (cur_time := add_time(cur_time, minutes=self.slot_length())) < self.end_time:
-            slots_list.append(cur_time)
+            slots_list.append(TimeSlot(cur_time))
 
         return slots_list
 
@@ -97,6 +107,7 @@ class Event(EventInfo):
     def extras(self) -> Optional[Dict]:
         event_extras: Dict = self.event_type._extras
         own_extras: Dict = self._extras
+
         if event_extras and own_extras:
             event_extras.update(own_extras)
             return event_extras
@@ -128,8 +139,12 @@ class EventAppointment(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
 
+    extras = JSONField(null=True, blank=True)
 
+    def time_string(self):
+        return f'{_time(self.start_time)} tot {_time(self.end_time)}'
 
+    time_string.short_description = "Tijden"
 
 """ENDOFNEW"""
 
@@ -200,7 +215,7 @@ class TestMoment(AbstractMoment):
     def course_name_list(self):
         return [course.name for course in self.courses.all()]
 
-    course_name_list.short_description = "Vakken"
+    course_name_list.short_description = _("Vakken")
 
     @property
     def appointments_for_moment(self):
