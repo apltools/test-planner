@@ -16,7 +16,7 @@ RUN apk update \
 
 # Install packages
 RUN pip install pipenv
-COPY ../Pipfile ../Pipfile.lock /code/
+COPY Pipfile Pipfile.lock /code/
 RUN pipenv install --system
 
 COPY ./docker-entrypoint.dev.sh /code/docker-entrypoint.dev.sh
