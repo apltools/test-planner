@@ -29,7 +29,7 @@ class CustomUserAdmin(UserAdmin):
 class EventAdmin(admin.ModelAdmin):
     readonly_fields = ('slots', 'slot_length')
     form = EventForm
-    list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'extras')
+    list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'capacity', 'extras')
 
 class EventAppointmentAdmin(admin.ModelAdmin):
     list_display = ('name', 'date', 'time_string', 'extras')
@@ -38,8 +38,3 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(EventType)
 admin.site.register(EventAppointment, EventAppointmentAdmin)
 admin.site.register(Event, EventAdmin)
-
-# admin.site.register(Course, CourseAdmin)
-# admin.site.register(TestMoment, TestMomentAdmin)
-# admin.site.register(Test)
-# admin.site.register(Appointment)

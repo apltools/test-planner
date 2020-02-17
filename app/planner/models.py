@@ -7,9 +7,11 @@ import django.utils.timezone as tz
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import QuerySet
 from django.template.defaultfilters import time as _time
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
+from first import first
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
 
@@ -47,6 +49,7 @@ class EventInfo(models.Model):
     _slot_length = models.IntegerField(blank=True, null=True)
     _location = models.fields.CharField(max_length=16, blank=True, null=True)
     _extras = JSONField(blank=True, null=True)
+    _capacity = models.PositiveIntegerField(verbose_name=_("Capaciteit"), blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -58,6 +61,11 @@ class EventType(EventInfo):
 
     def __str__(self):
         return self.name
+
+    def events_next_week(self):
+        today = tz.localdate()
+        next_week = today + dt.timedelta(weeks=1)
+        return self.events.filter(date__gte=today, date__lte=next_week).order_by('date')
 
     class Meta(EventInfo.Meta):
         pass
@@ -75,31 +83,37 @@ class Event(EventInfo):
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
 
-    time_string.short_description = "Tijden"
+    time_string.short_description = _("Tijden")
 
     def slot_length(self) -> int:
-        return self._slot_length if self._slot_length else self.event_type._slot_length
+        return first([self._slot_length, self.event_type._slot_length])
 
     def location(self) -> str:
-        return self._location if self._location else self.event_type._location
+        return first([self._location, self.event_type._location])
 
     location.short_description = _("Locatie")
 
+    def capacity(self) -> int:
+        return first([self._capacity, self.event_type._capacity], default=1)
+
     @property
     def host(self) -> Optional[User]:
-        return self._host if self._host else self.event_type._host
+        return first([self._host, self.event_type._host])
 
     @property
     def slots(self) -> List[TimeSlot]:
         """List of possible time slots."""
-        if not self.slot_length:
+        if not self.slot_length or not self.start_time:
             return []
+
         cur_time = self.start_time
 
-        slots_list: List[TimeSlot] = [TimeSlot(cur_time)]
+        slots_list: List[TimeSlot] = []
+        while cur_time < self.end_time:
+            slots_list.append(TimeSlot(cur_time, available=self.slot_open(time=cur_time)))
 
-        while (cur_time := add_time(cur_time, minutes=self.slot_length())) < self.end_time:
-            slots_list.append(TimeSlot(cur_time))
+            cur_time = add_time(cur_time, minutes=self.slot_length())
+
 
         return slots_list
 
@@ -121,6 +135,18 @@ class Event(EventInfo):
         if input := self.extras.get('input'):
             return input
         return None
+
+    def slot_open(self, *, time: dt.time) -> bool:
+        # Check is slot is in the past
+        if tz.make_aware(dt.datetime.combine(self.date, time)) < tz.localtime():
+            return False
+
+        apps_count = self.appointments_at_time(time=time).count()
+        return apps_count < self.capacity()
+
+    def appointments_at_time(self, *, time: dt.time) -> QuerySet:
+        apps = self.appointments.filter(start_time__exact=time)
+        return apps
 
     def __str__(self):
         return self.event_type.slug
@@ -148,7 +174,9 @@ class EventAppointment(models.Model):
     def time_string(self):
         return f'{_time(self.start_time)} tot {_time(self.end_time)}'
 
+
     time_string.short_description = "Tijden"
+
 
 """ENDOFNEW"""
 

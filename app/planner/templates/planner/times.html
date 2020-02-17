@@ -1,5 +1,6 @@
 {% extends 'planner/base.html' %}
 
+
 {% block title %}
     {{ event_type.name }} - Kies een Tijd
 {% endblock %}
@@ -13,7 +14,6 @@
         <div class="row">
             <div class="col-md-6">
                 <h4>Plan een toetsje in voor {{ event_type.name }}</h4>
-
                 <p><span class="far fa-calendar fa-fw"></span> {{ event.date }}</p>
                 <p><span class="far fa-clock fa-fw"></span> {{ event.slot_length }} minuten</p>
                 <p><span class="fas fa-map-marker fa-fw"></span> {{ event.location }}</p>
@@ -30,6 +30,7 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+
                 {{ form.duration }}
             </div>
 

@@ -22,8 +22,8 @@ def event_type_index(request: HttpRequest, event_type: str) -> HttpResponse:
     except EventType.DoesNotExist:
         raise Http404('Invalid event type')
 
-    # TODO: Don't return all events
-    events = event_type.events.all()
+
+    events = event_type.events_next_week()
 
     events_per_date = defaultdict(list)
 
@@ -75,6 +75,9 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
         # TODO: Check is slot if full and is slot isn't closed
         form = EventAppointmentForm(request.POST, event=event)
         if form.is_valid():
+            if not event.slot_open(time = form.cleaned_data['start_time']):
+                return render(request, 'planner/error.html', context={'error_message': _("Slot niet beschikbaar")})
+
             app: EventAppointment = form.save(commit=False)
             app.date = event.date
             app.end_time = add_time(app.start_time, minutes=event.slot_length())

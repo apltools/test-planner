@@ -87,3 +87,5 @@ def cancel_appointment(request: HttpRequest) -> JsonResponse:
         print(e)
         return JsonResponse(False, safe=False)
     return JsonResponse(True, safe=False)
+
+# TODO: Endpoint, geeft studentnummer en wil toetsjes terug

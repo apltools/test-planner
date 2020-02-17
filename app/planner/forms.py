@@ -1,9 +1,18 @@
 from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
+from django.utils.translation import gettext as _
 
 from .models import Appointment, CourseMomentRelation, Event, TestMoment, User, EventAppointment
+
+
+def mod11(nr: int):
+    mod11_sum = 0
+
+    for i, digit in enumerate(reversed(str(nr))):
+        mod11_sum += (i + 1) * int(digit)
+
+    return mod11_sum % 11 == 0
 
 
 class CourseTimeSlotForm(forms.ModelForm):
@@ -36,14 +45,27 @@ class EventAppointmentForm(forms.ModelForm):
     def clean(self):
         cleaned_data = self.cleaned_data
 
-        if not ' ' in cleaned_data.get('name'):
-            self.add_error('name', 'Geef alsjeblieft je voor- en achtenaam op.')
-
         for field_name, max_amount in self.checkbox_max_amount.items():
             if len(cleaned_data.get(field_name, [])) > max_amount:
                 self.add_error(field_name, f'Kies maximaal {max_amount} opties.')
 
         return cleaned_data
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if not ' ' in name:
+            raise ValidationError(_('Geef alsjeblieft je voor- en achtenaam op.'), code='no_last_name')
+        return name
+
+    def clean_student_nr(self):
+        student_nr = self.cleaned_data['student_nr']
+        length = len(str(student_nr))
+
+        if length > 8 or length < 7:
+            raise ValidationError(_('Ongeldig Studentnummer.'), code='length')
+        if not mod11(student_nr):
+            raise ValidationError(_('Ongeldig Studentnummer.'), code="mod11")
+        return student_nr
 
     def add_extra_fields(self, fields):
         for field in fields:
@@ -64,7 +86,8 @@ class EventAppointmentForm(forms.ModelForm):
     def construct_checkbox(field):
         choices = [(item, item) for item in field['options']]
         required = field.get('required', False)
-        return forms.MultipleChoiceField(label=field['name'], widget=CheckBoxSelectMultipleBootstrap(), choices=choices, required=required)
+        return forms.MultipleChoiceField(label=field['name'], widget=CheckBoxSelectMultipleBootstrap(), choices=choices,
+                                         required=required)
 
     @staticmethod
     def construct_radio(field):
@@ -72,14 +95,12 @@ class EventAppointmentForm(forms.ModelForm):
         required = field.get('required', False)
         return forms.ChoiceField(label=field['name'], widget=forms.RadioSelect(), choices=choices, required=required)
 
-
     class Meta:
         model = EventAppointment
-        fields = ('name', 'student_nr','email', 'start_time')
+        fields = ('name', 'student_nr', 'email', 'start_time')
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Voor- en achtenaam',
             }),
             'student_nr': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -91,21 +112,25 @@ class EventAppointmentForm(forms.ModelForm):
 
         }
 
+        labels = {
+            'name': _('Voor- en achtenaam'),
+        }
+
         error_messages = {
             'student_nr': {
-                'invalid': "Ongeldig studentnummer."
+                'invalid': "Ongeldig studentnummer.",
+                'mod11': "ELFPROEF"
             },
             'start_time': {
                 'required': "Kies een tijd."
             },
         }
 
-
-
     class UnsupportedFieldTypeException(Exception):
         pass
 
 
+# OLD FORM
 class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.test_moment: TestMoment = kwargs.pop("test_moment", None)
