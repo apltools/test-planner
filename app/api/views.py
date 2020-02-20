@@ -9,8 +9,7 @@ from django.http import HttpRequest, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
 
-
-from planner.models import Appointment, Course, Test, TestMoment, EventAppointment, Event
+from planner.models import EventAppointment, Event
 
 
 def staff_member_required_json(view_func):
@@ -23,35 +22,11 @@ def staff_member_required_json(view_func):
     return wrapped_view
 
 
-class AppointmentsEncoder(DjangoJSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Appointment):
-            obj_dict = model_to_dict(obj, fields=['student_name', 'tests', 'id'])
-            obj_dict['course'] = obj.course.short_name
-            return obj_dict
-
-        elif isinstance(obj, Test):
-            return obj.name
-
-        elif isinstance(obj, Course):
-            return obj.name
-
-        elif isinstance(obj, dt.date):
-            return _date(obj, "l j F").capitalize()
-
-        elif isinstance(obj, models.Model):
-            return model_to_dict(obj)
-
-        return super().default(obj)
-
 class EventAppointmentsEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, EventAppointment):
             obj_dict = model_to_dict(obj, fields=['name', 'extras', 'id'])
             return obj_dict
-
-        elif isinstance(obj, Test):
-            return obj.name
 
         elif isinstance(obj, Event):
             obj_dict = model_to_dict(obj, fields=('date'))
