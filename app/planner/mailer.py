@@ -13,7 +13,7 @@ def send_confirm_email(*, event: Event, appointment: EventAppointment, request: 
         reverse("cancel", kwargs={"event_type": event.event_type.slug, "secret": appointment.cancel_secret}))
 
     message = f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
-              f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {event.location}.\r\n' \
+              f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {event.location()}.\r\n' \
               f'Wil je de afspraak anuleren, dat kan via deze link {url}'
 
     send_mail(subject=f'Toetsje ingepland voor {event.event_type.name}',
