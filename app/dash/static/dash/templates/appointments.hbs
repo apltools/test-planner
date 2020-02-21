@@ -1,5 +1,5 @@
-<h3 class="date">{{test_moment.date}}</h3>
-<h5>{{join test_moment.courses}}</h5>
+<h3 class="date">{{event.date}}</h3>
+<h5>{{event.name}}</h5>
 {{#each appointments}}
     <div class="timeSlot">
         <h6><span class="time">{{@key}}</span> ({{this.length}})</h6>
@@ -11,7 +11,7 @@
                         annuleren
                     </a>
                     <span class="fa-li"><i class="far fa-square"></i></span>
-                    <b class="name">{{this.student_name}}</b> ({{this.course}}) {{join this.tests}}
+                    <b class="name">{{this.name}}</b> {{json this.extras}}
 
                 </li>
             {{/each}}

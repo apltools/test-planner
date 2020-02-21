@@ -1,24 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .forms import CourseTimeSlotForm, CustomUserChangeForm, CustomUserCreationForm
-from .models import Appointment, Course, CourseMomentRelation, Test, TestMoment, User
-
-
-class CourseTimeSlotMemberInline(admin.TabularInline):
-    model = CourseMomentRelation
-    extra = 1
-    # One of these lines is the better solution :)
-    form = CourseTimeSlotForm
-
-
-class TestMomentAdmin(admin.ModelAdmin):
-    inlines = (CourseTimeSlotMemberInline,)
-    list_display = ('date', 'time_string', 'course_name_list')
-
-
-class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+from .forms import CustomUserChangeForm, CustomUserCreationForm, EventForm
+from .models import User, EventType, Event, EventAppointment
 
 
 class CustomUserAdmin(UserAdmin):
@@ -28,8 +12,17 @@ class CustomUserAdmin(UserAdmin):
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_staff']
 
 
+class EventAdmin(admin.ModelAdmin):
+    readonly_fields = ('slots', 'slot_length')
+    form = EventForm
+    list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'capacity', 'extras')
+
+
+class EventAppointmentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'date', 'time_string', 'extras')
+
+
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Course, CourseAdmin)
-admin.site.register(TestMoment, TestMomentAdmin)
-admin.site.register(Test)
-admin.site.register(Appointment)
+admin.site.register(EventType)
+admin.site.register(EventAppointment, EventAppointmentAdmin)
+admin.site.register(Event, EventAdmin)

@@ -1,167 +1,124 @@
 from collections import defaultdict
+from locale import _append_modifier
+from typing import Dict, Type
 from uuid import UUID
 
 import django.utils.timezone as tz
-from django.conf import settings
-from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import render
-from django.template.defaultfilters import date as _date, time as _time
-from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from .forms import AppointmentForm
-from .models import Appointment, Course, TestMoment
+from .forms import EventAppointmentForm
+from .models import Event, EventType, EventAppointment, add_time
+from .mailer import send_confirm_email
 
 
 def index(request) -> HttpResponse:
     return render(request, 'planner/index.html')
 
 
-def choose_date(request: HttpRequest, course_name: str) -> HttpResponse:
+def event_type_index(request: HttpRequest, event_type: str) -> HttpResponse:
+    """A page with all events in a EventType"""
     try:
-        course = Course.objects.get(short_name=course_name)
-    except Course.DoesNotExist:
-        raise Http404('Invalid course name')
+        event_type = EventType.objects.get(slug=event_type)
+    except EventType.DoesNotExist:
+        raise Http404('Invalid event type')
 
-    test_moments = course.tests_this_week()
+    events = event_type.events_next_week()
 
-    moments_per_date = defaultdict(list)
+    events_per_date = defaultdict(list)
 
-    for moment in test_moments:
-        moments_per_date[moment.date].append(moment)
+    # Put events in list per day
+    for event in events:
+        events_per_date[event.date].append(event)
 
-    for date in moments_per_date.values():
+    # Sort Events within the same day
+    for date in events_per_date.values():
         date.sort(key=lambda moment: moment.start_time)
 
     context = {
-        'moments_per_date': moments_per_date.items(),
-        'course': course,
+        'events_per_date': events_per_date.items(),
+        'event_type': event_type,
     }
 
-    return render(request, 'planner/dates.html', context=context)
+    return render(request, 'planner/events.html', context=context)
 
 
-def choose_time(request: HttpRequest, course_name: str, uuid: UUID) -> HttpResponse:
+def extract_extras(post: Type[QueryDict], event: Event) -> Dict:
+    names = [field['name'] for field in event.extras.get('fields')]
+    post_dict = dict(post)
+    extras = {name: post_dict[name] for name in names}
+    return extras
+
+
+def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpResponse:
     """View for choosing a time."""
 
-    # Validate course
+    # Validate EventType
     try:
-        course = Course.objects.get(short_name=course_name)
-    except Course.DoesNotExist:
-        raise Http404('Invalid Course')
+        event_type = EventType.objects.get(slug__exact=event_type)
+    except EventType.DoesNotExist:
+        raise Http404('Invalid EventType')
 
+    # Validate Event
     try:
-        test_moment = TestMoment.objects.get(uuid__exact=uuid, courses__exact=course)
-    except (TestMoment.DoesNotExist, ValueError):
-        raise Http404('Invalid uuid')
-
-    # Validate of date isn't in the past.
-    if test_moment.date < tz.localdate():
-        return render(request, 'planner/error.html',
-                      {'error_message': _('Deze datum is inmiddels verlopen.'),
-                       'course': course, })
+        event = Event.objects.get(uuid__exact=uuid, event_type__exact=event_type)
+    except (EventType.DoesNotExist, ValueError):
+        raise Http404('Invalid Event UUID')
 
     if request.method == "POST":
-        form = AppointmentForm(request.POST, test_moment=test_moment)
-
+        form = EventAppointmentForm(request.POST, event=event)
         if form.is_valid():
-            # Check if time is full
-            if not test_moment.spots_available(form.cleaned_data['start_time'], course):
-                return render(request, 'planner/error.html',
-                              {'error_message': _('Waarschijnlijk was iemand je voor, dit tijdstip is helaas al vol.'),
-                               'course': course, })
+            time = form.cleaned_data['start_time']
 
-            # Check if time is in the past
-            today = tz.localdate()
-            if test_moment.date == today:
-                now = tz.localtime().time()
-                if form.cleaned_data['start_time'] <= now:
-                    return render(request, 'planner/error.html',
-                                  {'error_message': _('Deze tijd mag niet meer gekozen worden.'),
-                                   'course': course})
+            if time not in [slot.time for slot in event.slots]:
+                return render(request, 'planner/error.html', context={'error_message': _('Invalid time')}, )
 
-            app = Appointment()
-            app.student_name = form.cleaned_data['student_name']
-            app.student_nr = form.cleaned_data['student_nr']
-            app.email = form.cleaned_data['email']
-            app.date = test_moment.date
-            app.course = course
-            app.start_time = form.cleaned_data["start_time"]
-            app.duration = test_moment.test_length
+            # Check if slot is open and not in the past
+            if not event.slot_open(time=time):
+                return render(request, 'planner/error.html', context={'error_message': _("Slot niet beschikbaar.")})
 
-            # Save can go wrong is student had a appointment on this date
+            app: EventAppointment = form.save(commit=False)
+            app.date = event.date
+            app.end_time = add_time(app.start_time, minutes=event.slot_length())
+            app.extras = extract_extras(request.POST, event)
+            app.event = event
+
             try:
                 app.save()
             except IntegrityError:
+                # Duplicate appointment on day
                 return render(request, 'planner/error.html',
-                              {'error_message': _('Het maken van een dubbele afspraak op een dag is niet toegestaan.'),
-                               'course': course, })
+                              context={'error_message': _('Je hebt al een afspraak staan voor deze dag.')}, )
 
-            app.tests.set(form.cleaned_data['tests'])
-
-            send_confirm_email(course=course, appointment=app, test_moment=test_moment, request=request)
-
-            return done(request, course=course, app=app, tm=test_moment)
+            send_confirm_email(event=event, appointment=app, request=request)
+            return render(request, 'planner/done.html', context={'app': app, 'event': event})
 
     else:
-        form = AppointmentForm()
-
-    course_moment = test_moment.coursemomentrelation_set.get(course__exact=course)
-    # Insert the allowed tests for the course into the form as options.
-    form.fields['tests'].queryset = course_moment.allowed_tests.all()
+        form = EventAppointmentForm(event=event, initial={'date': event.date})
 
     context = {
-        'course': course,
-        'test_moment': test_moment,
-        'course_moment': course_moment,
+        'event_type': event_type,
+        'event': event,
         'form': form,
-        'student_slots': test_moment.student_slots_for_course(course),
     }
 
     return render(request, 'planner/times.html', context=context)
 
 
-def done(request: HttpRequest, *, course: Course, app: Appointment, tm: TestMoment) -> HttpResponse:
-    context = {
-        'app': app,
-        'course': course,
-        'tm': tm
-    }
-    return render(request, 'planner/done.html', context=context)
-
-
-def send_confirm_email(*, course: Course, appointment: Appointment, test_moment: TestMoment, request: HttpRequest):
-    url = request.build_absolute_uri(
-        reverse("cancel", kwargs={"course_name": course.short_name, "secret": appointment.cancel_secret}))
-
-    message = f'Je hebt je ingeschreven voor het maken van een toetsje op {_date(appointment.date, "l j F")} ' \
-              f'om {_time(appointment.start_time)}.\r\nHet maken van dit toetsje vindt plaats in {test_moment.location}.\r\n' \
-              f'Wil je de afspraak anuleren, dat kan via deze link {url}'
-
-    if not settings.EMAIL_HOST:
-        print(message)
-        return
-
-    send_mail(subject=f'Toetsje ingepland voor {course.name}',
-              message=message,
-              from_email=settings.EMAIL_FROM,
-              recipient_list=[appointment.email])
-
-
-def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> HttpResponse:
+def cancel_appointment(request: HttpRequest, event_type: str, secret: str) -> HttpResponse:
     try:
-        course = Course.objects.get(short_name__exact=course_name)
-    except Course.DoesNotExist:
-        raise Http404("Invalid Course")
+        event_type = EventType.objects.get(slug__exact=event_type)
+    except EventType.DoesNotExist:
+        raise Http404("Invalid EventType")
 
     try:
-        appointment = Appointment.objects.get(cancel_secret__exact=secret, course__exact=course)
-    except Appointment.DoesNotExist:
+        appointment = EventAppointment.objects.get(cancel_secret__exact=secret)
+    except EventAppointment.DoesNotExist:
         return render(request, 'planner/error.html',
                       {'error_message': _('Ongeldige link'),
-                       'course': course})
+                       'event_type': event_type})
 
     if request.method == "POST":
         now = tz.localtime().time()
@@ -169,15 +126,15 @@ def cancel_appointment(request: HttpRequest, course_name: str, secret: str) -> H
 
         if appointment.date < today:
             return render(request, 'planner/error.html',
-                          {'error_message': _('Dit toetsje is in het verleden'),
-                           'course': course})
+                          {'error_message': _('Deze afspraak ligt in het verleden'),
+                           'event_type': event_type})
         elif appointment.date == today:
             if appointment.start_time <= now:
                 return render(request, 'planner/error.html',
-                              {'error_message': _('Dit toetsje is al gestart of is in het verleden'),
-                               'course': course})
+                              {'error_message': _('Deze afspraak is al gestart of is in het verleden'),
+                               'event_type': event_type})
         appointment.delete()
 
         return render(request, 'planner/error.html', {'error_message': _("Afspraak verwijderd!")})
 
-    return render(request, 'planner/cancel.html', {'course': course})
+    return render(request, 'planner/cancel.html')
