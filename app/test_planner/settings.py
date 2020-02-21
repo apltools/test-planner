@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'planner.apps.PlannerConfig',
     'dash.apps.DashConfig',
     'api.apps.ApiConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

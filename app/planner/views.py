@@ -1,7 +1,9 @@
 from collections import defaultdict
+from locale import _append_modifier
 from typing import Dict, Type
 from uuid import UUID
 
+import django.utils.timezone as tz
 from django.db import IntegrityError
 from django.http import Http404, HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import render
@@ -9,6 +11,7 @@ from django.utils.translation import gettext as _
 
 from .forms import EventAppointmentForm
 from .models import Event, EventType, EventAppointment, add_time
+from .mailer import send_confirm_email
 
 
 def index(request) -> HttpResponse:
@@ -89,6 +92,7 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
                 return render(request, 'planner/error.html',
                               context={'error_message': _('Je hebt al een afspraak staan voor deze dag.')}, )
 
+            send_confirm_email(event=event, appointment=app, request=request)
             return render(request, 'planner/done.html', context={'app': app, 'event': event})
 
     else:
@@ -109,28 +113,28 @@ def cancel_appointment(request: HttpRequest, event_type: str, secret: str) -> Ht
     except EventType.DoesNotExist:
         raise Http404("Invalid EventType")
 
-    # try:
-    #     appointment = EventAppointment.objects.get(cancel_secret__exact=secret, course__exact=course)
-    # except Appointment.DoesNotExist:
-    #     return render(request, 'planner/error.html',
-    #                   {'error_message': _('Ongeldige link'),
-    #                    'course': course})
+    try:
+        appointment = EventAppointment.objects.get(cancel_secret__exact=secret)
+    except EventAppointment.DoesNotExist:
+        return render(request, 'planner/error.html',
+                      {'error_message': _('Ongeldige link'),
+                       'event_type': event_type})
 
-    # if request.method == "POST":
-    #     now = tz.localtime().time()
-    #     today = tz.localdate()
-    #
-    #     if appointment.date < today:
-    #         return render(request, 'planner/error.html',
-    #                       {'error_message': _('Dit toetsje is in het verleden'),
-    #                        'course': course})
-    #     elif appointment.date == today:
-    #         if appointment.start_time <= now:
-    #             return render(request, 'planner/error.html',
-    #                           {'error_message': _('Dit toetsje is al gestart of is in het verleden'),
-    #                            'course': course})
-    #     appointment.delete()
-    #
-    #     return render(request, 'planner/error.html', {'error_message': _("Afspraak verwijderd!")})
+    if request.method == "POST":
+        now = tz.localtime().time()
+        today = tz.localdate()
+
+        if appointment.date < today:
+            return render(request, 'planner/error.html',
+                          {'error_message': _('Deze afspraak ligt in het verleden'),
+                           'event_type': event_type})
+        elif appointment.date == today:
+            if appointment.start_time <= now:
+                return render(request, 'planner/error.html',
+                              {'error_message': _('Deze afspraak is al gestart of is in het verleden'),
+                               'event_type': event_type})
+        appointment.delete()
+
+        return render(request, 'planner/error.html', {'error_message': _("Afspraak verwijderd!")})
 
     return render(request, 'planner/cancel.html')
