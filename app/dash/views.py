@@ -7,10 +7,12 @@ from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from planner.models import Event
+from api.models import APIKey
 
 nav_items = {
     'Home': 'dash:index',
     'Geschiedenis': 'dash:history',
+    'Config': 'dash:config'
 }
 
 
@@ -33,3 +35,10 @@ def history(request: HttpRequest) -> HttpResponse:
                'nav_items': nav_items}
 
     return render(request, 'dash/index.html', context=context)
+
+@staff_member_required
+def config(request: HttpRequest) -> HttpResponse:
+    if request.method == 'POST':
+        APIKey().save()
+    api_key = APIKey.load()
+    return render(request, 'dash/config.html', context={'api_key': api_key})

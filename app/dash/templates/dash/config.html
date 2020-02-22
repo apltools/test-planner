@@ -1,0 +1,12 @@
+{% extends 'dash/base.html' %}
+
+{% block main %}
+    <div class="form-group">
+        <label for="apiFieldKey" readonly="readonly">API-Key</label>
+        <input type="text" class="form-control" id="apiFieldKey" readonly="readonly" value="{{ api_key.key }}">
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">RESET API-Key</button>
+    </form>
+{% endblock %}

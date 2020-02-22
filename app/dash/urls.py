@@ -6,4 +6,5 @@ app_name = 'dash'
 urlpatterns = [
     path('', views.index, name='index'),
     path('history', views.history, name='history'),
+    path('config', views.config, name='config'),
 ]

@@ -29,3 +29,20 @@ docker-compose -f docker-compose.prod.yml up -d
 # Create superuser
 docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
 ```
+
+## API
+
+Get API-key from `/dash/config`
+
+POST as `api-key`
+
+
+### Tests for student `/api/tests/`
+
+
+#### Example
+
+```curl -X POST -F 'api-key=DEffyJW4BktCpU10aBU6PmY5q8IhZcBG' -F 'student-nr=11166932' http://127.0.0.1:8000/api/tests/```
+
+Output
+```["Toets C", "Toets D"]```
