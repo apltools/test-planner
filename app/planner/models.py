@@ -147,7 +147,7 @@ class Event(EventInfo):
         return self.event_type.slug
 
     class Meta(EventInfo.Meta):
-        pass
+        ordering = ['-date', '-start_time']
 
 
 class EventAppointment(models.Model):
@@ -174,3 +174,4 @@ class EventAppointment(models.Model):
 
     class Meta:
         unique_together = ('student_nr', 'date')
+        ordering = ['date', 'start_time']
