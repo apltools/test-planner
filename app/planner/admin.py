@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserChangeForm, CustomUserCreationForm, EventForm
-from .models import User, EventType, Event, EventAppointment
+from .models import User, EventType, Event, EventAppointment, EventSequence
 
 
 class CustomUserAdmin(UserAdmin):
@@ -25,4 +25,5 @@ class EventAppointmentAdmin(admin.ModelAdmin):
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(EventType)
 admin.site.register(EventAppointment, EventAppointmentAdmin)
+admin.site.register(EventSequence)
 admin.site.register(Event, EventAdmin)

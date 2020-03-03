@@ -67,50 +67,42 @@ class EventType(EventInfo):
         pass
 
 
+class EventSequence(EventInfo):
+    """Sequence for weekly repeat"""
+    event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='sequences', null=True, blank=True)
+
+    start_time = models.TimeField(verbose_name=_("Start Tijd"), null=True, blank=True)
+    end_time = models.TimeField(verbose_name=_("Start Tijd"), null=True, blank=True)
+
+    class Meta(EventInfo.Meta):
+        verbose_name = _("Event Reeks")
+        verbose_name_plural = _("Event Reeksen")
+
+
 class Event(EventInfo):
     """Represents a event, a moments on a day with one or multiple timeslots."""
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='events')
+    event_sequence = models.ForeignKey(EventSequence, on_delete=models.CASCADE, related_name='events')
 
     date = models.DateField(verbose_name=_("Datum"))
-    start_time = models.TimeField(verbose_name=_("Start Tijd"))
-    end_time = models.TimeField(verbose_name=_("Eind Tijd"))
+    _start_time = models.TimeField(verbose_name=_("Start Tijd"))
+    _end_time = models.TimeField(verbose_name=_("Eind Tijd"))
     uuid = models.UUIDField(default=uuid4)
 
     def time_string(self):
-        return f'{_time(self.start_time)} tot {_time(self.end_time)}'
+        return f'{_time(self.start_time())} tot {_time(self.end_time())}'
 
     time_string.short_description = _("Tijden")
 
+    # Inherited from EventSequence and EventType
+
     def slot_length(self) -> int:
-        return first([self._slot_length, self.event_type._slot_length])
+        return first([self._slot_length,self.event_type._slot_length])
 
     def location(self) -> str:
         return first([self._location, self.event_type._location])
 
     location.short_description = _("Locatie")
-
-    def capacity(self) -> int:
-        return first([self._capacity, self.event_type._capacity], default=1)
-
-    @property
-    def host(self) -> Optional[User]:
-        return first([self._host, self.event_type._host])
-
-    @property
-    def slots(self) -> List[TimeSlot]:
-        """List of possible time slots."""
-        if not self.slot_length or not self.start_time:
-            return []
-
-        cur_time = self.start_time
-
-        slots_list: List[TimeSlot] = []
-        while cur_time < self.end_time:
-            slots_list.append(TimeSlot(cur_time, available=self.slot_open(time=cur_time)))
-
-            cur_time = add_time(cur_time, minutes=self.slot_length())
-
-        return slots_list
 
     @property
     def extras(self) -> Optional[Dict]:
@@ -125,6 +117,39 @@ class Event(EventInfo):
         elif event_extras:
             return event_extras
         return None
+
+    @property
+    def host(self) -> Optional[User]:
+        return first([self._host, self.event_type._host])
+
+    def capacity(self) -> int:
+        return first([self._capacity, self.event_type._capacity], default=1)
+
+    # Inherited from EventSequence
+
+    def start_time(self):
+        return first([self._start_time, self.event_sequence.start_time])
+
+    def end_time(self):
+        return first([self._end_time, self.event_sequence.end_time])
+
+    # Own properties
+
+    @property
+    def slots(self) -> List[TimeSlot]:
+        """List of possible time slots."""
+        if not self.slot_length or not self.start_time:
+            return []
+
+        cur_time = self.start_time()
+
+        slots_list: List[TimeSlot] = []
+        while cur_time < self.end_time():
+            slots_list.append(TimeSlot(cur_time, available=self.slot_open(time=cur_time)))
+
+            cur_time = add_time(cur_time, minutes=self.slot_length())
+
+        return slots_list
 
     def extra_inputs(self) -> Optional[Dict]:
         if input := self.extras.get('input'):
@@ -147,7 +172,7 @@ class Event(EventInfo):
         return self.event_type.slug
 
     class Meta(EventInfo.Meta):
-        ordering = ['-date', '-start_time']
+        ordering = ['-date', '-_start_time']
 
 
 class EventAppointment(models.Model):
