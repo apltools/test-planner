@@ -97,10 +97,10 @@ class Event(EventInfo):
     # Inherited from EventSequence and EventType
 
     def slot_length(self) -> int:
-        return first([self._slot_length,self.event_type._slot_length])
+        return first([self._slot_length, self.event_sequence._slot_length, self.event_type._slot_length])
 
     def location(self) -> str:
-        return first([self._location, self.event_type._location])
+        return first([self._location, self.event_sequence._location ,self.event_type._location])
 
     location.short_description = _("Locatie")
 
@@ -120,10 +120,10 @@ class Event(EventInfo):
 
     @property
     def host(self) -> Optional[User]:
-        return first([self._host, self.event_type._host])
+        return first([self._host, self.event_sequence._host ,self.event_type._host])
 
     def capacity(self) -> int:
-        return first([self._capacity, self.event_type._capacity], default=1)
+        return first([self._capacity,self.event_sequence._capacity, self.event_type._capacity], default=1)
 
     # Inherited from EventSequence
 
