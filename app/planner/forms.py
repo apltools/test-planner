@@ -126,7 +126,7 @@ class EventForm(forms.ModelForm):
         cleaned_data = super().clean()
         if not cleaned_data['event_type']._slot_length and not cleaned_data['_slot_length']:
             raise ValidationError('No length was provided')
-        elif not cleaned_data['event_type']._location and not cleaned_data['location']:
+        elif not cleaned_data['event_type']._location and not cleaned_data['_location']:
             raise ValidationError('No locations was provided')
         print(f"{cleaned_data=}")
         return cleaned_data
