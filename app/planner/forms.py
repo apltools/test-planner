@@ -26,7 +26,11 @@ class EventAppointmentForm(forms.ModelForm):
                             'radio': EventAppointmentForm.construct_radio}
         self.checkbox_max_amount = {}
         self.event = kwargs.pop("event")
-        fields = self.event.extras.get("fields")
+
+        if extras := self.event.extras:
+            fields = extras.get("fields")
+        else:
+            fields = None
 
         super().__init__(*args, **kwargs)
 
