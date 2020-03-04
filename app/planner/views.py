@@ -1,6 +1,6 @@
 from collections import defaultdict
 from locale import _append_modifier
-from typing import Dict, Type
+from typing import Dict, Type, Optional
 from uuid import UUID
 
 import django.utils.timezone as tz
@@ -45,7 +45,10 @@ def event_type_index(request: HttpRequest, event_type: str) -> HttpResponse:
     return render(request, 'planner/events.html', context=context)
 
 
-def extract_extras(post: Type[QueryDict], event: Event) -> Dict:
+def extract_extras(post: Type[QueryDict], event: Event) -> Optional[dict]:
+    if not event.extras:
+        return None
+
     names = [field['name'] for field in event.extras.get('fields')]
     post_dict = dict(post)
     extras = {name: post_dict[name] for name in names}
