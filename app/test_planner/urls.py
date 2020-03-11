@@ -15,10 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+import django_cas_ng.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dash/', include('dash.urls', namespace='dash')),
     path('api/', include('api.urls')),
+    path('cas/login', django_cas_ng.views.LoginView.as_view(), name='cas_ng_login'),
+    path('cas/logout', django_cas_ng.views.LogoutView.as_view(), name='cas_ng_logout'),
+    path('cas/callback', django_cas_ng.views.CallbackView.as_view(), name='cas_ng_proxy_callback'),
     path('', include('planner.urls')),
 ]

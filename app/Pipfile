@@ -9,6 +9,8 @@ verify_ssl = true
 django = "~=3.0"
 gunicorn = "*"
 first = "*"
+django-crispy-forms = "*"
+django-cas-ng = "*"
 
 [requires]
 python_version = "3.8"

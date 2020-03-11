@@ -72,6 +72,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'test_planner.wsgi.application'
 
+# CAS configuration
+CAS_SERVER_URL = "https://secure.uva.nl/cas"
+
+
+
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
