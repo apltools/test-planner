@@ -13,7 +13,7 @@ RUN apk update \
     && apk add postgresql-dev \
     && pip install psycopg2 \
     && apk del build-deps
-    && apk add libxml2-dev
+    && apk add libxml2-dev libxslt1-dev
 
 # Install packages
 RUN pip install pipenv
