@@ -11,7 +11,7 @@ WORKDIR /code
 RUN apk update \
     && apk add --virtual build-deps gcc g++ python3-dev musl-dev libxml2-dev \
     && apk add postgresql-dev libxslt-dev \
-    && pip install psycopg2 \
+    && pip install psycopg2
 
 # Install packages
 RUN pip install pipenv
