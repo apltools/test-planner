@@ -14,7 +14,7 @@ services:
       context: ./app
       dockerfile: Dockerfile.prod
       args:
-        - buildno=35
+        - buildno=36
     command: gunicorn test_planner.wsgi -b 0.0.0.0:8000
     env_file: .env
     environment:
