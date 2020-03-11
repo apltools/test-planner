@@ -82,7 +82,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'test_planner.wsgi.application'
 
 # CAS configuration
-CAS_SERVER_URL = "https://secure.uva.nl/cas"
+CAS_SERVER_URL = "https://secure.uva.nl/cas/"
+CAS_VERSION = "2"
 
 
 
