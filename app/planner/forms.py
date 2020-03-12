@@ -1,9 +1,8 @@
 from django import forms
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Event, User, EventAppointment
+from .models import Event, EventAppointment
 
 
 def mod11(nr: int):
@@ -138,15 +137,3 @@ class EventForm(forms.ModelForm):
     class Meta:
         exclude = ('',)
         model = Event
-
-
-class CustomUserCreationForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
-
-
-class CustomUserChangeForm(UserChangeForm):
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'first_name', 'last_name')

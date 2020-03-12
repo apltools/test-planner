@@ -28,7 +28,7 @@ def get_cancel_secret(length: int = 64) -> str:
 
 
 class User(AbstractUser):
-    pass
+    teaching_assistant = models.BooleanField(default=False)
 
 
 class TimeSlot:
