@@ -1,0 +1,14 @@
+{% extends 'dash/base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block main %}
+    <div class="row">
+    <div class="col-6">
+        {{ event_types }}
+    </div>
+        <div class="col-5">
+            {% crispy form %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'dash/base.html' %}
+
+{% block main %}
+    <div id="choose-type">
+        {% load crispy_forms_tags %}
+        {% crispy form %}
+    </div>
+    <div id="create-event"></div>
+{% endblock %}
+
+{% block script %}
+    <script>
+    $(function () {
+        $('#button-id-select-type').on('click', function () {
+            value = $('#id_event_type').children("option:selected").val();
+            console.log(value);
+
+        });
+    })
+    </script>
+{% endblock %}
