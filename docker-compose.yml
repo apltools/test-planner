@@ -18,11 +18,11 @@ services:
     command: gunicorn test_planner.wsgi -b 0.0.0.0:8000
     env_file: .env
     environment:
-      - DEBUG=0
+      - DEBUG=1
     volumes:
       - ./staticfiles:/code/staticfiles
     ports:
-      - 8000:8000
+      - 8030:8000
     depends_on:
       - db
 volumes:

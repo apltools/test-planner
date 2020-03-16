@@ -1,6 +1,5 @@
 import datetime as dt
 from collections import defaultdict
-from functools import wraps
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -9,17 +8,10 @@ from django.http import HttpRequest, JsonResponse
 from django.template.defaultfilters import date as _date
 from django.template.defaultfilters import time as _time
 
+from api.decorators import staff_member_required_json
 from planner.models import EventAppointment, Event
 
 
-def staff_member_required_json(view_func):
-    @wraps(view_func)
-    def wrapped_view(request, *args, **kwargs):
-        if request.user.is_staff:
-            return view_func(request, *args, **kwargs)
-        return JsonResponse([], safe=False, status=401)
-
-    return wrapped_view
 
 
 class EventAppointmentsEncoder(DjangoJSONEncoder):

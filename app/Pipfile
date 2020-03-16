@@ -11,6 +11,7 @@ gunicorn = "*"
 first = "*"
 django-crispy-forms = "*"
 django-cas-ng = "*"
+authlib = "*"
 
 [requires]
 python_version = "3.8"

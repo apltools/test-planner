@@ -1,4 +1,4 @@
-FROM python:3.8-alpine
+FROM python:3.8-slim
 
 # Set environment varibles
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -8,17 +8,20 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 # install psycopg2
-RUN apk update \
-    && apk add --virtual build-deps gcc g++ python3-dev musl-dev libxml2-dev  \
-    && apk add postgresql-dev libxslt-dev \
-    && pip install psycopg2
+#RUN apk update \
+#    && apk add --virtual build-deps gcc g++ python3-dev musl-dev libxml2-dev  \
+#    && apk add postgresql-dev libxslt-dev \
+#    && pip install psycopg2
+
+RUN apt-get update \
+    && apt-get install -y netcat
 
 # Install packages
 RUN pip install pipenv
 COPY Pipfile Pipfile.lock /code/
 RUN pipenv install --system
-
-RUN apk del build-deps
+RUN pip install psycopg2-binary
+#RUN apk del build-deps
 
 COPY ./docker-entrypoint.dev.sh /code/docker-entrypoint.dev.sh
 

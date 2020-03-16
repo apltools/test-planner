@@ -17,7 +17,7 @@ services:
     environment:
       - DEBUG=1
     ports:
-      - 8000:8000
+      - 8030:8000
     volumes:
       - ./app/:/code
     depends_on:

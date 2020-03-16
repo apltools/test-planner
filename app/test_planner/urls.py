@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dash/', include('dash.urls', namespace='dash')),
     path('api/', include('api.urls')),
+    path('zoom/', include('zoom.urls')),
     path('cas/login', django_cas_ng.views.LoginView.as_view(), name='cas_ng_login'),
     path('cas/logout', django_cas_ng.views.LogoutView.as_view(), name='cas_ng_logout'),
     path('cas/callback', django_cas_ng.views.CallbackView.as_view(), name='cas_ng_proxy_callback'),
