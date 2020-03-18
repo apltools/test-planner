@@ -18,7 +18,7 @@ class CustomUserAdmin(UserAdmin):
 class EventAdmin(admin.ModelAdmin):
     readonly_fields = ('slots', 'slot_length')
     form = EventForm
-    list_display = ('event_type', 'date', 'time_string', 'host', 'location', 'slot_length', 'capacity', 'extras')
+    list_display = ('event_type', 'date', 'time_string', 'hosts', 'location', 'slot_length', 'capacity', 'extras')
 
 
 class EventAppointmentAdmin(admin.ModelAdmin):

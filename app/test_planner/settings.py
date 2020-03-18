@@ -82,6 +82,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'test_planner.wsgi.application'
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # CAS configuration
 CAS_SERVER_URL = "https://secure.uva.nl/cas/"
 CAS_VERSION = "2"

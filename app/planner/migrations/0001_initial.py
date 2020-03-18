@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
                 ('start_time', models.TimeField()),
                 ('end_time', models.TimeField()),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('cancel_secret', models.CharField(default=planner.models.get_cancel_secret, max_length=64, unique=True)),
+                ('cancel_secret', models.CharField(default=planner.models.gen_cancel_secret, max_length=64, unique=True)),
                 ('extras', django.contrib.postgres.fields.jsonb.JSONField(blank=True, null=True)),
                 ('event', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='appointments', to='planner.Event')),
             ],

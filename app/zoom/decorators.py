@@ -13,6 +13,5 @@ def zoom_token_required(view_func):
             return view_func(request, *args, **kwargs)
         except OAuth2Token.DoesNotExist:
             return redirect(f'{reverse("zoom:login")}?next={request.path}')
-        # except
 
     return wrapped_view

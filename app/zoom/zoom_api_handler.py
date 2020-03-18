@@ -1,14 +1,16 @@
-from authlib.integrations.django_client import OAuth, DjangoRemoteApp
+from datetime import datetime
 
-from zoom.models import OAuth2Token
+from authlib.integrations.django_client import OAuth, DjangoRemoteApp
+from django.http import HttpRequest
+
+from .models import OAuth2Token
 
 
 def fetch_token(name, request):
-    token = OAuth2Token.objects.get(
+    return OAuth2Token.objects.get(
         name=name,
         user=request.user
-    )
-    return token.to_token()
+    ).to_token()
 
 
 def update_token(name, token, refresh_token=None, access_token=None):
@@ -23,6 +25,7 @@ def update_token(name, token, refresh_token=None, access_token=None):
     item.access_token = token['access_token']
     item.refresh_token = token.get('refresh_token')
     item.expires_at = token['expires_at']
+
     item.save()
 
 
@@ -34,8 +37,7 @@ oauth.register(
     client_secret='fFLXguSGF8DWZzbDR3956kT7f3fh455J',
 
     access_token_url='https://zoom.us/oauth/token',
-    access_token_params={
-    },
+    access_token_params=None,
 
     authorize_url='https://zoom.us/oauth/authorize',
     authorize_params=None,
@@ -48,3 +50,22 @@ oauth.register(
 )
 
 zoom: DjangoRemoteApp = oauth.zoom
+
+
+def create_meeting(request: HttpRequest):
+    request_body = {
+        "topic": "test",
+        "type": 2,
+        "start_time": datetime(2020, 3, 20, 10, 00).isoformat(),
+        "duration": 10,
+        "timezone": "Europe/Amsterdam",
+        "settings": {
+            "host_video": False,
+            "participant_video": False,
+            "join_before_host": True,
+            "mute_upon_entry": False,
+            "audio": "voip",
+        }
+    }
+
+    return zoom.post('users/me/meetings', json=request_body, request=request)
