@@ -1,0 +1,10 @@
+{% extends 'dash/base.html' %}
+
+{% block main %}
+    <h1>Kies een EventType</h1>
+    <div class="btn-group-vertical">
+    {% for event_type in event_types %}
+        <a class="btn   btn-outline-primary" href="{% url 'dash:create-events-for' event_type.slug %}">{{ event_type.name }}</a>
+    {% endfor %}
+    </div>
+{% endblock %}

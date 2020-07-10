@@ -1,0 +1,22 @@
+{{#each weeks}}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">{{@key}}</th>
+            {{#each this}}
+                <th scope="col">{{this}}</th>
+            {{/each}}
+        </tr>
+        </thead>
+        <tbody>
+        {{#each ../times}}
+            <tr>
+                <th scope="row">{{this}}</th>
+                {{#each ../this}}
+                    <td><input type="text" class="form-control" id="{{this}}-{{../this}}"></td>
+                {{/each}}
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>
+{{/each}}

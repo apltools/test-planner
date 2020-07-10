@@ -1,15 +1,24 @@
-from datetime import datetime
+import datetime as dt
 
 from authlib.integrations.django_client import OAuth, DjangoRemoteApp
-from django.http import HttpRequest
 
-from .models import OAuth2Token
+from planner.models import User, EventAppointment
+from .models import OAuth2Token, ZoomMeeting
+
+from http import HTTPStatus
 
 
 def fetch_token(name, request):
     return OAuth2Token.objects.get(
         name=name,
         user=request.user
+    ).to_token()
+
+
+def get_token_for_user(user: User, name='zoom'):
+    return OAuth2Token.objects.get(
+        name=name,
+        user=user,
     ).to_token()
 
 
@@ -52,12 +61,13 @@ oauth.register(
 zoom: DjangoRemoteApp = oauth.zoom
 
 
-def create_meeting(request: HttpRequest):
+def create_meeting(app: EventAppointment) -> ZoomMeeting:
+    token = get_token_for_user(app.host)
     request_body = {
-        "topic": "test",
+        "topic": f'{app.name}: {app.event.event_type.name}',
         "type": 2,
-        "start_time": datetime(2020, 3, 20, 10, 00).isoformat(),
-        "duration": 10,
+        "start_time": dt.datetime.combine(app.date, app.start_time).isoformat(),
+        "duration": app.duration,
         "timezone": "Europe/Amsterdam",
         "settings": {
             "host_video": False,
@@ -68,4 +78,29 @@ def create_meeting(request: HttpRequest):
         }
     }
 
-    return zoom.post('users/me/meetings', json=request_body, request=request)
+    resp = zoom.post('users/me/meetings', json=request_body, token=token)
+    meeting = resp.json()
+    print(meeting)
+    zoom_meeting = ZoomMeeting(
+        meeting_id=meeting['id'],
+        meeting_url=meeting['join_url'],
+    )
+
+    zoom_meeting.save()
+
+    return zoom_meeting
+
+
+def delete_meeting(app: EventAppointment):
+    token = get_token_for_user(app.host)
+    resp = zoom.delete(f'meetings/{app.zoom_meeting.meeting_id}',
+                       params={"schedule_for_reminder": "false"},
+                       token=token)
+
+    if resp.status_code == HTTPStatus.NO_CONTENT:
+        return True
+
+    status = HTTPStatus(resp.status_code)
+    print(f'{status.value} {status.phrase}: {status.description}')
+
+    return False

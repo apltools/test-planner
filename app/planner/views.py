@@ -9,6 +9,7 @@ from django.http import Http404, HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+from zoom.zoom_api_handler import create_meeting, delete_meeting
 from .forms import EventAppointmentForm
 from .models import Event, EventType, EventAppointment, add_time
 from .mailer import send_confirm_email
@@ -72,6 +73,7 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
 
     if request.method == "POST":
         form = EventAppointmentForm(request.POST, event=event)
+
         if form.is_valid():
             time = form.cleaned_data['start_time']
 
@@ -84,7 +86,7 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
 
             app: EventAppointment = form.save(commit=False)
             app.date = event.date
-            app.end_time = add_time(app.start_time, minutes=event.slot_length())
+            app.duration = event.slot_length()
             app.extras = extract_extras(request.POST, event)
             app.event = event
 
@@ -94,6 +96,14 @@ def choose_event(request: HttpRequest, event_type: str, uuid: UUID) -> HttpRespo
                 # Duplicate appointment on day
                 return render(request, 'planner/error.html',
                               context={'error_message': _('Je hebt al een afspraak staan voor deze dag.')}, )
+
+            if event.hosts.count() > 0:
+
+                app.host = event.hosts[0]
+
+                if event.is_zoom_meeting():
+                    app.zoom_meeting = create_meeting(app)
+                    app.save()
 
             send_confirm_email(event=event, appointment=app, request=request)
             return render(request, 'planner/done.html', context={'app': app, 'event': event})
@@ -136,6 +146,10 @@ def cancel_appointment(request: HttpRequest, event_type: str, secret: str) -> Ht
                 return render(request, 'planner/error.html',
                               {'error_message': _('Deze afspraak is al gestart of is in het verleden'),
                                'event_type': event_type})
+
+        if appointment.zoom_meeting:
+            delete_meeting(appointment)
+
         appointment.delete()
 
         return render(request, 'planner/error.html', {'error_message': _("Afspraak verwijderd!")})

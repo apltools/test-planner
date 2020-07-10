@@ -29,3 +29,5 @@ class OAuth2Token(models.Model):
 
 class ZoomMeeting(models.Model):
     meeting_id = models.PositiveIntegerField()
+    meeting_url = models.URLField()
+
