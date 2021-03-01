@@ -1,23 +1,36 @@
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 import django.utils.timezone as tz
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render, redirect
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from planner.models import Event, EventType
+from planner.models import Event, EventType, User
 from .forms import CreateEventTypeForm, CreateEventsForm
 
 context: Dict[str, Any] = {
     'nav_items': {
-        'Home': 'dash:index',
-        'Geschiedenis': 'dash:history',
-        'Nieuw EventType': 'dash:create-event-type',
-        'Genereer Events': 'dash:create-events',
+        _('Home'): 'dash:index',
+        _('History'): 'dash:history',
+        _('New Eventtype'): 'dash:create-event-type',
+        _('Generate Events'): 'dash:create-events',
     }
 }
+
+TIMES = ["9:00",
+         "10:00",
+         "11:00",
+         "12:00",
+         "13:00",
+         "14:00",
+         "15:00",
+         "16:00"
+         ]
+
+DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
 
 @ensure_csrf_cookie
@@ -71,6 +84,7 @@ def select_event_type(request: HttpRequest) -> HttpResponse:
 
     return render(request, 'dash/selectEventType.html', context)
 
+
 def create_events(request: HttpRequest, event_type_slug: str) -> HttpResponse:
     try:
         event_type = EventType.objects.get(slug__exact=event_type_slug)
@@ -79,21 +93,22 @@ def create_events(request: HttpRequest, event_type_slug: str) -> HttpResponse:
         raise Http404('EventType does not exist')
 
     if request.method == 'POST':
+        print(request.POST)
         form = CreateEventsForm(request.POST)
         form.is_valid()
     else:
-        form = CreateEventsForm(initial={
-            'slot_length': event_type.slot_length,
-            'location': event_type.location,
-            'extras': event_type.extras,
-            'capacity': event_type.capacity,
-            'is_zoom_meeting': event_type.is_zoom_meeting,
-        })
+        form = CreateEventsForm()
 
+    hosts = User.objects.filter(is_teaching_assistant=True)
+    max_nr = 4
 
     context.update({
         'event_type': event_type,
         'form': form,
+        'times': TIMES,
+        'hosts': hosts,
+        'days': DAYS,
+        'nrs': range(max_nr),
     })
 
     return render(request, 'dash/createEvents.html', context)

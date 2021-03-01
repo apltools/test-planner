@@ -1,3 +1,12 @@
+table {
+    width: 100%;
+}
+td {
+    width: 18%;
+}
 
+th [scope="row"]{
+    width: 10%;
+}
 
 /*# sourceMappingURL=style.css.map */

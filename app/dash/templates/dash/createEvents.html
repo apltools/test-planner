@@ -4,117 +4,72 @@
     Genereer Events
 {% endblock %}
 {% block main %}
-    <div id="setup-events">
-        <h3>Maak Events voor {{ event_type.name }} ({{ event_type.slug }})</h3>
-        {% load crispy_forms_tags %}
-        {% crispy form %}
-        <button class="btn btn-primary" id="next-button">Next</button>
-    </div>
-    <div id="choose-hosts">
-        <button class="btn btn-secondary" id="previous-button">Previous</button>
-
-        <div id="hbs-target">
+    <form method="post">
+        <div id="setup-events">
+            <h3>Maak Events voor {{ event_type.name }} ({{ event_type.slug }})</h3>
+            {% load crispy_forms_tags %}
+            {% crispy form %}
+        </div>
+        <div id="choose-hosts">
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th scope="col"></th>
+                    {% for day in days %}
+                        <th scope="col">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for time in times %}
+                    <tr>
+                        <th scope="row">{{ time }}</th>
+                        {% for day in days %}
+                            <td>
+                                {% for nr in nrs %}
+                                    <div class="form-group">
+                                        <select class="form-control" name="{{ day | slugify }}-{{ time | slugify }}-{{ nr }}">
+                                            <option value>None</option>
+                                            {% for host in hosts %}
+                                                <option value="{{ host.username }}">{{ host.first_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
 
         </div>
-    </div>
-    <script>
-        const times = [
-            "9:00-10:00",
-            "10:00-11:00",
-            "11:00-12:00",
-            "12:00-13:00",
-            "13:00-14:00",
-            "14:00-15:00",
-            "15:00-16:00",
-            "16:00-17:00"
-        ];
-        const hosts = ['mstegem1', 'mjansen5', '10785507', '11166932'];
-    </script>
-
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
 {% endblock %}
 
 {% block script %}
     <script>
-        function get_time(id) {
-            const time = $(`#${id}`).val();
-            return moment(time, moment.HTML5_FMT.TIME)
-        }
-
-        function get_date(id) {
-            const date = $(`#${id}`).val();
-            return moment(date, ["DD-MM-YYYY"])
-
-        }
-
-
-        $(function () {
+        window.addEventListener('DOMContentLoaded', () => {
             const datetimepicker_first_date = $('#datetimepicker_first_date');
             const datetimepicker_last_date = $('#datetimepicker_last_date');
 
-            datetimepicker_first_date.datetimepicker('useCurrent', false);
+            const date_settings = {'useCurrent': false, format: 'L', locale: 'nl'}
 
-            datetimepicker_last_date.datetimepicker('useCurrent', false);
+            datetimepicker_first_date.datetimepicker(date_settings);
+            datetimepicker_last_date.datetimepicker(date_settings);
 
-            datetimepicker_first_date.datetimepicker('daysOfWeekDisabled', [0,2,3,4,5,6]);
-            datetimepicker_last_date.datetimepicker('daysOfWeekDisabled', [0,1,2,3,4,6]);
+            datetimepicker_first_date.datetimepicker('daysOfWeekDisabled', [0, 2, 3, 4, 5, 6]);
+            datetimepicker_last_date.datetimepicker('daysOfWeekDisabled', [0, 1, 2, 3, 4, 6]);
 
 
-            datetimepicker_first_date.on("change.datetimepicker", function (e) {
+            datetimepicker_first_date.on("change.datetimepicker", (e) => {
                 datetimepicker_last_date.datetimepicker('minDate', e.date);
             });
-            datetimepicker_last_date.on("change.datetimepicker", function (e) {
+            datetimepicker_last_date.on("change.datetimepicker", (e) => {
                 datetimepicker_first_date.datetimepicker('maxDate', e.date);
             });
 
-
-            $('#choose-hosts').hide(0);
-
-            $('#next-button').click(function () {
-                const first_date = get_date('id_first_date');
-                const last_date = get_date('id_last_date');
-                const n_weeks = last_date.diff(first_date, 'weeks');
-
-                let weeks = [moment(first_date)];
-
-                // create a list of week start days.
-                for (let week = 0; week < n_weeks; week++) {
-                    first_date.add(1, 'w');
-                    weeks.push(moment(first_date));
-                }
-
-                let weeks_with_dates = {};
-
-
-                for (week of weeks) {
-                    let week_list = [];
-                    weeks_with_dates[week.isoWeek()] = week_list;
-
-                    for (let i = 0; i < 7; i++) {
-                        week_list.push(week.format('dd D MMM'));
-                        week.add(1, 'd');
-                    }
-                }
-
-                console.log(weeks);
-                console.log(weeks_with_dates);
-
-
-
-                let request = $.get('{% static 'dash/templates/createEventsTable.hbs' %}');
-                request.done(function (data) {
-                    const hb_data = {'times': times, 'weeks': weeks_with_dates};
-                    const template = Handlebars.compile(data);
-                    $('#hbs-target').html(template(hb_data))
-                });
-
-                $("#setup-events :input").prop("disabled", true);
-                $('#choose-hosts').show()
-            });
-
-            $('#previous-button').click(function () {
-                $("#setup-events :input").prop("disabled", false);
-                $('#choose-hosts').hide()
-            })
         })
     </script>
 {% endblock %}

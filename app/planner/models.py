@@ -5,28 +5,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.template.defaultfilters import time as _time
 from django.utils import timezone as tz
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 
 from zoom.models import ZoomMeeting, OAuth2Token
+from .helpers import add_time, gen_cancel_secret, validate_timeslot
 
 TimeAppointmentsTuple = ItemsView[dt.time, List['Appointment']]
-
-
-def add_time(time: dt.time, *, hours: int = 0, minutes: int = 0) -> dt.time:
-    return (dt.datetime.combine(dt.date.today(), time) + dt.timedelta(hours=hours, minutes=minutes)).time()
-
-
-def subtract_time(time: dt.time, *, hours: int = 0, minutes: int = 0) -> dt.time:
-    return (dt.datetime.combine(dt.date.today(), time) - dt.timedelta(hours=hours, minutes=minutes)).time()
-
-
-def diff_time(time1: dt.time, time2: dt.time) -> dt.timedelta:
-    return dt.datetime.combine(dt.date.today(), time1) - dt.datetime.combine(dt.date.today(), time2)
-
-
-def gen_cancel_secret(length: int = 64) -> str:
-    return get_random_string(length=length)
 
 
 class User(AbstractUser):
@@ -46,11 +30,12 @@ class TimeSlot:
 
 
 class EventType(models.Model):
-    slot_length = models.PositiveIntegerField(blank=True, null=True)
-    capacity = models.PositiveIntegerField(verbose_name=_("Capaciteit per Host"), blank=True, null=True)
-
     name = models.CharField(max_length=64, unique=True, null=True)
     slug = models.SlugField(max_length=16, unique=True, null=True)
+
+
+    slot_length = models.PositiveIntegerField(default=20, validators=[validate_timeslot])
+
 
     def __str__(self):
         return self.name

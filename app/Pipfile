@@ -4,11 +4,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+psycopg2-binary = "*"
 
 [packages]
 django = "~=3.0"
 gunicorn = "*"
-first = "*"
 django-crispy-forms = "*"
 django-cas-ng = "*"
 authlib = "*"
